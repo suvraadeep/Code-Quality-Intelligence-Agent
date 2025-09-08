@@ -104,8 +104,8 @@ setup(
     ],
     keywords="code quality, static analysis, AI, LLM, security, complexity, GitHub, chatbot",
     project_urls={
-        "Bug Reports": "https://github.com/yourusername/code-quality-intelligence/issues",
-        "Source": "https://github.com/yourusername/code-quality-intelligence",
-        "Documentation": "https://github.com/yourusername/code-quality-intelligence#readme",
+        "Bug Reports": "https://github.com/suvraadeep/Code-Quality-Intelligence-Agent/issues",
+        "Source": "https://github.com/suvraadeep/Code-Quality-Intelligence-Agent",
+        "Documentation": "https://github.com/suvraadeep/Code-Quality-Intelligence-Agent#readme",
     },
 )
