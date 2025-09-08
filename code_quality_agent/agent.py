@@ -13,12 +13,12 @@ from langchain.memory import ConversationBufferMemory
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-from config import Config
-from core.analyzers import CodeAnalyzer
-from core.report_generator import ReportGenerator
-from core.rag_system import CodeRAGSystem
-from core.chatbot import CodeQualityChatbot
-from utils.file_handler import FileHandler
+from .config import Config
+from .analyzers import CodeAnalyzer
+from .report_generator import ReportGenerator
+from .rag_system import CodeRAGSystem
+from .chatbot import CodeQualityChatbot
+from .utils.file_handler import FileHandler
 
 
 class CodeQualityAgent:

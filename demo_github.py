@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from core.agent import CodeQualityAgent
+from code_quality_agent.agent import CodeQualityAgent
 from rich.console import Console
 from rich.panel import Panel
 

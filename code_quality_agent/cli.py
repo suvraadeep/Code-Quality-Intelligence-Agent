@@ -12,9 +12,9 @@ from rich.prompt import Prompt, Confirm
 from rich.panel import Panel
 from rich.text import Text
 
-from config import Config
-from core.agent import CodeQualityAgent
-from core.report_generator import ReportGenerator
+from .config import Config
+from .agent import CodeQualityAgent
+from .report_generator import ReportGenerator
 
 
 # Force UTF-8 stdout/stderr on Windows to avoid Unicode errors
@@ -249,7 +249,7 @@ def setup():
 def info(path: str):
     """Get information about a codebase without full analysis."""
     try:
-        from utils.file_handler import FileHandler
+        from .utils.file_handler import FileHandler
         
         console.print(f"[blue]📊 Analyzing codebase structure: {path}[/blue]\n")
         
@@ -351,7 +351,7 @@ def chat():
 
 async def _enhanced_chat_session(path: str):
     """Run enhanced chat session with RAG and conversational features."""
-    from core.agent import CodeQualityAgent
+    from .agent import CodeQualityAgent
     
     # Initialize agent
     agent = CodeQualityAgent()

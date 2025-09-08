@@ -34,8 +34,8 @@ async def run_demo():
         os.environ["GROQ_API_KEY"] = "demo_key_for_testing"
     
     try:
-        from core.agent import CodeQualityAgent
-        from core.report_generator import ReportGenerator
+        from code_quality_agent.agent import CodeQualityAgent
+        from code_quality_agent.report_generator import ReportGenerator
         
         console.print("[green]✅ All components loaded successfully[/green]")
         

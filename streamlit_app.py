@@ -5,7 +5,7 @@ and interactive features for code quality analysis.
 """
 
 import streamlit as st
-import pandas as pd
+import pandas as pdg 
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -18,10 +18,10 @@ import os
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from core.agent import CodeQualityAgent
-from core.chatbot import CodeQualityChatbot
-from core.rag_system import CodeRAGSystem
-from config import Config
+from code_quality_agent.agent import CodeQualityAgent
+from code_quality_agent.chatbot import CodeQualityChatbot
+from code_quality_agent.rag_system import CodeRAGSystem
+from code_quality_agent.config import Config
 
 st.set_page_config(
     page_title="Code Quality Intelligence Dashboard",

@@ -13,7 +13,7 @@ class Config:
     # API Keys (fetched dynamically via get_groq_api_key)
     
     # Model settings
-    DEFAULT_MODEL = "llama3-8b-8192"
+    DEFAULT_MODEL = "deepseek-r1-distill-llama-70b"
     TEMPERATURE = 0.1
     MAX_TOKENS = 4096
     
@@ -51,6 +51,11 @@ class Config:
         if not cls.get_groq_api_key():
             raise ValueError("GROQ_API_KEY environment variable is required")
         return True
+
+    @classmethod
+    def has_groq_api_key(cls) -> bool:
+        """Check if GROQ API key is available."""
+        return bool(cls.get_groq_api_key().strip())
 
     @classmethod
     def get_groq_api_key(cls) -> str:

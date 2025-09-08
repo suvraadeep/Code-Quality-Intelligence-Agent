@@ -11,7 +11,7 @@ import subprocess
 import git
 from git import Repo
 
-from config import Config
+from ..config import Config
 
 
 class FileHandler:

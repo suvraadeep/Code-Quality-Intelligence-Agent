@@ -16,14 +16,13 @@ from langchain.memory import ConversationBufferWindowMemory
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-from config import Config
-from core.rag_system import CodeRAGSystem
+from .config import Config
 
 
 class CodeQualityChatbot:
     """Enhanced conversational chatbot for code quality discussions."""
     
-    def __init__(self, rag_system: Optional[CodeRAGSystem] = None):
+    def __init__(self, rag_system = None):
         """Initialize the chatbot."""
         self.rag_system = rag_system
         self.llm = None
@@ -91,6 +90,7 @@ Remember: You're here to help developers improve their code quality through frie
         if self.rag_system and self.rag_system.is_available():
             try:
                 # Extract file paths from analysis results
+                from pathlib import Path
                 file_analyses = analysis_results.get('file_analyses', {})
                 files = [Path(fp) for fp in file_analyses.keys()]
                 
