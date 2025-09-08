@@ -1,3 +1,7 @@
+
+<img width="2816" height="969" alt="Gemini_Generated_Image_pry6kfpry6kfpry6" src="https://github.com/user-attachments/assets/fc7ae326-f848-480f-be4b-91c7228140a3" />
+
+
 # Code Quality Intelligence Agent
 
 A comprehensive AI-powered code quality analysis tool that provides intelligent insights into codebases using advanced language models, static analysis techniques, and semantic search capabilities.
