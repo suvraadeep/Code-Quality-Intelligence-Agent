@@ -458,8 +458,6 @@ MIT License - see LICENSE file for details
 - **Bandit**: Python security analysis
 - **Radon**: Code complexity metrics
 
-### Acknowledgments
-This project builds upon the excellent work of the open-source community, particularly the LangChain ecosystem, FAISS vector search capabilities, and the comprehensive static analysis tools that form the foundation of the quality assessment engine.
 
 ## Support and Contributing
 
@@ -476,36 +474,4 @@ Submit enhancement proposals with clear use cases and implementation suggestions
 4. Submit pull request with detailed description
 5. Ensure all validation tests pass
 
-### Development Setup
-```bash
-# Clone repository
-git clone https://github.com/user/code-quality-intelligence.git
-cd code-quality-intelligence
 
-# Install development dependencies
-pip install -r requirements.txt
-pip install -e .
-
-# Run validation suite
-python ship_validation.py
-```
-
-## Deployment Considerations
-
-### Production Deployment
-- **API Key Management**: Use environment variables or secure key management
-- **Resource Requirements**: 4GB RAM minimum, 8GB recommended
-- **Network Access**: Required for GitHub analysis and AI features
-- **Storage**: 100MB for application, additional space for analysis cache
-
-### Security Considerations
-- **API Key Protection**: Never commit API keys to version control
-- **Input Validation**: All file paths and URLs are validated
-- **Sandboxing**: GitHub repositories are cloned to temporary directories
-- **Data Privacy**: No code content is transmitted to external services except Groq API
-
-### Scalability
-- **Horizontal Scaling**: Multiple instances can analyze different codebases
-- **Cache Management**: RAG embeddings are persisted for performance
-- **Resource Optimization**: Automatic file size and count limitations
-- **Monitoring**: Comprehensive logging for production debugging
