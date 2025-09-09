@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
 """
 Entry point script for Code Quality Intelligence Agent package.
-
 This allows users to run the tool with: python cqi.py [commands]
 """
 

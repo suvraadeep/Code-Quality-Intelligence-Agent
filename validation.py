@@ -21,13 +21,14 @@ def run_command(cmd, description, timeout=120):
     
     try:
         result = subprocess.run(
-            cmd.split(),
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            encoding='utf-8',
-            errors='ignore'
-        )
+        [sys.executable, *cmd.split()[1:]],
+        cwd=Path(__file__).parent,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        encoding='utf-8',
+        errors='ignore'
+    )
         
         success = result.returncode == 0
         output_size = len(result.stdout)
