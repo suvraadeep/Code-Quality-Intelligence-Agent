@@ -1,5 +1,5 @@
 
-<img width="2816" height="969" alt="Gemini_Generated_Image_pry6kfpry6kfpry6" src="https://github.com/user-attachments/assets/fc7ae326-f848-480f-be4b-91c7228140a3" />
+<img width="1200" alt="Code Quality Intelligence Agent" src="https://raw.githubusercontent.com/suvraadeep/Code-Quality-Intelligence-Agent/main/utils/Gemini_Generated_Image_pry6kfpry6kfpry6.png" />
 
 
 # Code Quality Intelligence Agent
