@@ -1,17 +1,11 @@
+
+<img width="2816" height="969" alt="Gemini_Generated_Image_pry6kfpry6kfpry6" src="https://github.com/user-attachments/assets/fc7ae326-f848-480f-be4b-91c7228140a3" />
+
+
 # Code Quality Intelligence Agent
 
 A comprehensive AI-powered code quality analysis tool that provides intelligent insights into codebases using advanced language models, static analysis techniques, and semantic search capabilities.
 
-<<<<<<< HEAD
-## Production Status
-
-**Status: Production Ready**  
-**Version: 1.0.0**  
-**Testing: All features validated with 100% CLI success rate**  
-**Package: Ready for distribution via PyPI or direct installation**
-=======
-
->>>>>>> 98188daa541c0640fb606cff0eb819fd15c936e7
 
 ## Overview
 
@@ -32,7 +26,7 @@ The Code Quality Intelligence Agent is an enterprise-grade tool that combines tr
 - **Fallback System**: Heuristic responses when API unavailable
 
 ### RAG System Implementation
-- **Vector Database**: FAISS (Facebook AI Similarity Search) for efficient similarity search
+- **Vector Database**: FAISS for efficient similarity search
 - **Embedding Strategy**: Custom feature extraction optimized for code analysis
 - **Feature Dimensions**: 512-dimensional vectors capturing code patterns and semantics
 - **Code-Specific Features**:
