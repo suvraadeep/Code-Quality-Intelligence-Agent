@@ -90,7 +90,7 @@ python cqi.py setup
 ### System Validation
 ```bash
 # Validate complete system functionality
-python ship_validation.py
+python validation.py
 
 # Test RAG system specifically
 python -c "from code_quality_agent.rag_system import CodeRAGSystem; rag = CodeRAGSystem(); print('RAG Available:', rag.is_available()); print('System:', rag.get_collection_stats().get('system'))"
