@@ -37,9 +37,9 @@ setup(
     description="AI-powered code quality analysis tool with GitHub integration and interactive chatbot",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Code Quality Intelligence Team",
-    author_email="contact@codequalityintelligence.com",
-    url="https://github.com/yourusername/code-quality-intelligence",
+    author="Suvraadeep Das",
+    author_email="suvraadeep.das@gmail.com",
+    url="https://github.com/suvraadeep/Code-Quality-Intelligence-Agent",
     packages=find_packages(),
     include_package_data=True,
     install_requires=[

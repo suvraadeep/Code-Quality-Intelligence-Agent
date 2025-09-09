@@ -6,11 +6,25 @@ build-backend = "setuptools.build_meta"
 name = "code-quality-intelligence"
 version = "1.0.0"
 description = "AI-powered code quality analysis tool with GitHub integration and interactive chatbot"
-authors = [{name = "Code Quality Intelligence Team", email = "contact@codequalityintelligence.com"}]
-license = {text = "MIT"}
+authors = [{name = "Suvraadeep Das", email = "suvraadeep.das@gmail.com"}]
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.8"
 keywords = ["code quality", "static analysis", "AI", "LLM", "security", "complexity", "GitHub", "chatbot"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
 
 dependencies = [
     "langchain==0.2.16",
@@ -57,7 +71,7 @@ code-quality = "code_quality_agent.cli:cli"
 code-quality-agent = "code_quality_agent.cli:cli"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/code-quality-intelligence"
-"Bug Reports" = "https://github.com/yourusername/code-quality-intelligence/issues"
-"Source Code" = "https://github.com/yourusername/code-quality-intelligence"
-Documentation = "https://github.com/yourusername/code-quality-intelligence#readme"
+Homepage = "https://github.com/suvraadeep/Code-Quality-Intelligence-Agent"
+"Bug Reports" = "https://github.com/suvraadeep/Code-Quality-Intelligence-Agent/issues"
+"Source Code" = "https://github.com/suvraadeep/Code-Quality-Intelligence-Agent"
+Documentation = "https://github.com/suvraadeep/Code-Quality-Intelligence-Agent#readme"
