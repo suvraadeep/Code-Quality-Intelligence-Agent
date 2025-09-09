@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> ae92f37412d36df7a17824c480a846e21385ac8c
 <img width="2816" height="969" alt="Gemini_Generated_Image_pry6kfpry6kfpry6" src="https://github.com/user-attachments/assets/b4943c63-eb90-4a75-85c6-aa8236763a20" />
 
 
