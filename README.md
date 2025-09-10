@@ -92,6 +92,21 @@ python setup-web.py
 # Then use: python cqi-web.py
 ```
 
+#### Web Interface Setup and Launchers
+```bash
+# Setup for global access (run once)
+python setup-web.py
+
+# Available launcher methods:
+python cqi-web.py              # Main launcher (works from anywhere)
+cqi-web.bat                    # Windows batch file
+cd Webpage && python launch.py # Local launcher with dependency check
+cd Webpage && streamlit run app.py # Direct Streamlit launch
+
+# Test web interface functionality
+cd Webpage && python test_app.py
+```
+
 ## Configuration
 
 ### API Key Setup
@@ -249,14 +264,183 @@ cd Webpage && streamlit run app.py
 # Access at: http://localhost:8501
 ```
 
-**Web Interface Features:**
-- Professional UI without emojis for enterprise use
-- All CLI functionality accessible through web interface
-- Real-time analysis progress and visual reports
-- Interactive charts and data visualization
-- Multi-page navigation (Home, Setup, Info, Analyze, Chat)
-- RAG system statistics and management
-- GitHub and local file analysis support
+**Web Interface Architecture:**
+- **Main Application**: `Webpage/app.py` - Complete Streamlit web application
+- **Configuration**: `Webpage/config.py` - Centralized settings and constants
+- **Launcher Scripts**: Multiple launch options for different platforms
+- **Testing Suite**: `Webpage/test_app.py` - Comprehensive functionality tests
+- **Dependencies**: `Webpage/requirements.txt` - All required packages
+
+**Core Features:**
+- **Professional UI**: Clean, emoji-free interface suitable for enterprise use
+- **Complete CLI Parity**: All command-line functionality accessible through web interface
+- **Real-time Analysis**: Live progress updates with visual feedback
+- **Interactive Visualizations**: Charts, graphs, and data tables using Plotly
+- **Multi-page Navigation**: 5 distinct pages (Home, Setup, Info, Analyze, Chat)
+- **RAG System Integration**: AI-powered code discussions with semantic search
+- **GitHub Integration**: Direct repository analysis and cloning
+- **Local File Support**: Comprehensive local codebase analysis
+
+**Page-Specific Functionality:**
+
+**Home Page:**
+- Welcome screen with feature overview
+- Getting started guide and supported languages
+- CLI commands reference and feature comparison
+
+**Setup Page:**
+- Groq API key configuration and validation
+- System dependency checking and status
+- Environment setup and troubleshooting
+
+**Info Page:**
+- Quick codebase statistics without full analysis
+- Language distribution analysis and file counts
+- File size and structure information
+
+**Analyze Page:**
+- Full code quality analysis with multiple output formats
+- Interactive mode with real-time progress
+- Visual reports with severity and category charts
+- File analysis table with highlighting
+- Support for both local paths and GitHub repositories
+
+**Chat Page:**
+- Enhanced conversational AI with RAG capabilities
+- Context-aware responses based on codebase analysis
+- Interactive chat interface with conversation history
+- Code-specific question answering
+
+**Technical Implementation:**
+- **Session Management**: Persistent state across page navigation
+- **Caching System**: Optimized performance with result caching
+- **Error Handling**: Graceful error management with user feedback
+- **Responsive Design**: Wide layout optimized for data visualization
+- **Modular Architecture**: Separate functions for each component
+- **Configuration Management**: Centralized settings and constants
+
+**Supported Analysis Types:**
+- Local file and directory analysis
+- GitHub repository analysis with branch support
+- Multiple output formats (Console, JSON, Markdown)
+- Interactive chat sessions
+- RAG-enhanced code discussions
+
+**Dependencies:**
+- Core: `code-quality-intelligence>=1.0.1`
+- Web Framework: `streamlit>=1.31.0`, `streamlit-chat>=0.1.1`
+- Data Processing: `pandas>=2.2.0`, `plotly>=5.19.0`, `numpy>=1.24.0`
+- AI/ML: `langchain>=0.2.16`, `sentence-transformers>=2.2.2`, `chromadb>=0.4.22`
+- Visualization: `matplotlib>=3.8.4`, `seaborn>=0.13.2`, `altair>=5.2.0`
+- Code Analysis: `bandit>=1.7.5`, `radon>=6.0.1`, `semgrep>=1.45.0`
+
+**Web Interface File Structure:**
+```
+Webpage/
+├── app.py                 # Main Streamlit application (689 lines)
+├── config.py              # Configuration and constants
+├── requirements.txt        # Web interface dependencies
+├── launch.py              # Local launcher with dependency checking
+├── test_app.py            # Comprehensive functionality tests
+├── README.md              # Web interface documentation
+├── QUICK_START.md         # Quick start guide
+├── cqi-web                # Unix launcher script
+├── cqi-web.bat            # Windows batch launcher
+├── launch.bat             # Windows batch file
+├── launch.sh              # Unix shell script
+├── components/            # Reusable UI components (empty)
+├── pages/                 # Additional pages (empty)
+├── static/                # Static assets (empty)
+└── simple_embeddings_db/  # RAG system database
+```
+
+**Key Functions in app.py:**
+- `initialize_session_state()` - Session management
+- `run_analysis()` - Core analysis execution with caching
+- `run_codebase_info()` - Quick statistics without full analysis
+- `create_overview_metrics()` - Metrics display with professional styling
+- `create_severity_chart()` - Issue severity visualization
+- `create_category_chart()` - Issue category distribution
+- `create_file_analysis_table()` - Detailed file analysis with highlighting
+- `create_chatbot_interface()` - AI chat functionality
+- `create_rag_stats()` - RAG system statistics and management
+- `setup_page()` - Configuration and dependency checking
+- `info_page()` - Quick codebase information
+- `analyze_page()` - Full analysis interface
+- `chat_page()` - Enhanced chat interface
+
+**Configuration Options (config.py):**
+- **Application Settings**: Title, icon, layout configuration
+- **Server Settings**: Host, port, and network configuration
+- **Supported Languages**: 13 programming languages with detection
+- **Output Formats**: Console, JSON, Markdown support
+- **Analysis Types**: Local Path and GitHub Repository
+- **Chart Colors**: Professional color scheme for severity levels
+- **Page Configuration**: Navigation structure and page definitions
+- **Default Settings**: Analysis type, output format, interactive mode
+- **API Configuration**: Groq API key environment variable and timeouts
+- **File Limits**: Maximum file size and total size constraints
+- **Cache Settings**: TTL and caching enablement
+- **Logging**: Log level and format configuration
+
+**Professional Design Features:**
+- **Emoji-Free Interface**: Clean, enterprise-suitable design
+- **Text-Based Severity Indicators**: [CRITICAL], [HIGH], [MEDIUM], [LOW], [INFO]
+- **Professional Color Scheme**: Consistent color coding for severity levels
+- **Responsive Layout**: Wide layout optimized for data visualization
+- **Custom CSS Styling**: Professional header, metric cards, and chat messages
+- **Clean Navigation**: Simple page names without emoji clutter
+
+**Web Interface Troubleshooting:**
+
+**Common Issues and Solutions:**
+1. **Import Errors**: Ensure main package is installed
+   ```bash
+   pip install code-quality-intelligence
+   ```
+
+2. **Missing Dependencies**: Install web interface requirements
+   ```bash
+   cd Webpage && pip install -r requirements.txt
+   ```
+
+3. **Port Conflicts**: Change port if 8501 is occupied
+   ```bash
+   streamlit run app.py --server.port 8502
+   ```
+
+4. **Analysis Failures**: Check file paths and permissions
+   - Verify target directory contains supported code files
+   - Ensure proper read permissions for local files
+   - Check GitHub repository URL format
+
+5. **API Key Issues**: Configure through Setup page
+   - Go to Setup page in web interface
+   - Enter valid Groq API key
+   - Check environment variable configuration
+
+6. **RAG System Problems**: Check database and dependencies
+   - Verify ChromaDB installation
+   - Check sentence-transformers availability
+   - Review RAG statistics in Chat page
+
+**Testing and Validation:**
+```bash
+# Test web interface functionality
+cd Webpage && python test_app.py
+
+# Check specific components
+cd Webpage && python -c "from app import *; print('All imports successful')"
+
+# Validate configuration
+cd Webpage && python -c "from config import *; print('Configuration loaded')"
+```
+
+**Performance Optimization:**
+- **Caching**: Results are cached for 1 hour by default
+- **File Limits**: Maximum 10MB per file, 100MB total
+- **Session Management**: State persists across page navigation
+- **Lazy Loading**: Components load only when needed
 
 ## Technical Implementation
 
