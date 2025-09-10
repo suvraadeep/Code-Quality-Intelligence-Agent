@@ -86,6 +86,10 @@ pip install dist/code_quality_intelligence-1.0.0-py3-none-any.whl
 # Global commands available after installation
 cqi analyze /path/to/code
 code-quality analyze /path/to/code --interactive
+
+# Setup web interface for easy access
+python setup-web.py
+# Then use: python cqi-web.py
 ```
 
 ## Configuration
@@ -231,6 +235,28 @@ streamlit run streamlit_app.py
 # Launch via CLI
 python cqi.py dashboard
 ```
+
+#### Professional Web Interface
+```bash
+# Quick launch - single command from anywhere
+python cqi-web.py
+
+# Windows batch file
+cqi-web.bat
+
+# Direct Streamlit launch
+cd Webpage && streamlit run app.py
+# Access at: http://localhost:8501
+```
+
+**Web Interface Features:**
+- Professional UI without emojis for enterprise use
+- All CLI functionality accessible through web interface
+- Real-time analysis progress and visual reports
+- Interactive charts and data visualization
+- Multi-page navigation (Home, Setup, Info, Analyze, Chat)
+- RAG system statistics and management
+- GitHub and local file analysis support
 
 ## Technical Implementation
 
