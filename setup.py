@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 from pathlib import Path
 
 # Read README for long description
-readme_path = Path(__file__).parent / "README.md"
+readme_path = Path(__file__).parent / "README-PYPI.md"
 if readme_path.exists():
     with open(readme_path, "r", encoding="utf-8") as f:
         long_description = f.read()
@@ -33,7 +33,7 @@ else:
 
 setup(
     name="code-quality-intelligence",
-    version="1.6.0",
+    version="1.6.1",
     description="AI-powered code quality analysis tool with GitHub integration and interactive chatbot",
     long_description=long_description,
     long_description_content_type="text/markdown",

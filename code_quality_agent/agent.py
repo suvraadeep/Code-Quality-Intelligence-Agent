@@ -198,9 +198,9 @@ class CodeQualityAgent:
         try:
             content = file_path.read_text(encoding='utf-8', errors='ignore')
             
-            # Skip if file is too large
+            # Handle large files with chunking
             if len(content) > Config.MAX_FILE_SIZE:
-                return {"error": "File too large to analyze"}
+                return await self._analyze_large_file(file_path, content)
             
             language = self.file_handler.detect_language(file_path)
             
@@ -285,6 +285,234 @@ class CodeQualityAgent:
                 
         except Exception as e:
             return {"error": f"Failed to analyze {file_path}: {str(e)}"}
+    
+    async def _analyze_large_file(self, file_path: Path, content: str) -> Dict[str, Any]:
+        """Analyze a large file by chunking it and merging results."""
+        try:
+            language = self.file_handler.detect_language(file_path)
+            
+            # Create chunks of the file
+            chunks = self._create_code_chunks(content, language)
+            
+            if not chunks:
+                return {"error": "Failed to create chunks from large file"}
+            
+            # Analyze each chunk
+            chunk_results = []
+            for i, chunk in enumerate(chunks):
+                chunk_result = await self._analyze_chunk(chunk, language, file_path, i)
+                if chunk_result and "error" not in chunk_result:
+                    chunk_results.append(chunk_result)
+            
+            # Merge chunk results using LLM
+            merged_result = await self._merge_chunk_results(chunk_results, file_path, language)
+            
+            return merged_result
+            
+        except Exception as e:
+            return {"error": f"Large file analysis failed: {str(e)}"}
+    
+    def _create_code_chunks(self, content: str, language: str) -> List[Dict[str, Any]]:
+        """Create meaningful chunks from code content."""
+        try:
+            chunk_size = Config.MAX_FILE_SIZE // 4  # 256KB chunks
+            overlap = 100  # Lines of overlap between chunks
+            
+            lines = content.split('\n')
+            chunks = []
+            
+            # Calculate lines per chunk (approximate)
+            avg_line_length = len(content) / len(lines) if lines else 50
+            lines_per_chunk = int(chunk_size / avg_line_length)
+            
+            start_line = 0
+            chunk_id = 0
+            
+            while start_line < len(lines):
+                end_line = min(start_line + lines_per_chunk, len(lines))
+                
+                # Adjust chunk boundaries to avoid breaking functions/classes
+                if language == "python" and end_line < len(lines):
+                    end_line = self._adjust_python_chunk_boundary(lines, start_line, end_line)
+                elif language in ["javascript", "typescript"] and end_line < len(lines):
+                    end_line = self._adjust_js_chunk_boundary(lines, start_line, end_line)
+                
+                chunk_content = '\n'.join(lines[start_line:end_line])
+                
+                chunks.append({
+                    'id': chunk_id,
+                    'content': chunk_content,
+                    'start_line': start_line + 1,
+                    'end_line': end_line,
+                    'size': len(chunk_content)
+                })
+                
+                # Move start with overlap
+                start_line = max(start_line + lines_per_chunk - overlap, end_line)
+                chunk_id += 1
+                
+                if start_line >= len(lines):
+                    break
+            
+            return chunks
+            
+        except Exception as e:
+            logging.error(f"Failed to create code chunks: {e}")
+            return []
+    
+    def _adjust_python_chunk_boundary(self, lines: List[str], start: int, end: int) -> int:
+        """Adjust chunk boundary to avoid breaking Python functions/classes."""
+        # Look backwards from end to find a good breaking point
+        for i in range(end - 1, start, -1):
+            line = lines[i].strip()
+            # Break at the end of a function or class
+            if line and not line.startswith(' ') and not line.startswith('\t'):
+                if i < end - 10:  # Ensure meaningful chunk size
+                    return i + 1
+        return end
+    
+    def _adjust_js_chunk_boundary(self, lines: List[str], start: int, end: int) -> int:
+        """Adjust chunk boundary to avoid breaking JavaScript functions."""
+        # Look for function boundaries
+        for i in range(end - 1, start, -1):
+            line = lines[i].strip()
+            if line.endswith('}') and not line.startswith('//'):
+                if i < end - 10:  # Ensure meaningful chunk size
+                    return i + 1
+        return end
+    
+    async def _analyze_chunk(self, chunk: Dict[str, Any], language: str, file_path: Path, chunk_id: int) -> Dict[str, Any]:
+        """Analyze a single chunk of code."""
+        try:
+            content = chunk['content']
+            
+            # Run LLM analysis on chunk
+            response = "{}"
+            if self.analysis_runnable:
+                try:
+                    response = await self.analysis_runnable.ainvoke({
+                        "code": content,
+                        "language": language,
+                        "filename": f"{file_path.name} (chunk {chunk_id + 1})"
+                    })
+                except Exception:
+                    response = "{}"
+            
+            # Parse JSON response
+            chunk_analysis = {}
+            try:
+                chunk_analysis = json.loads(response)
+            except Exception:
+                chunk_analysis = {"issues": [], "metrics": {}, "summary": ""}
+            
+            # Adjust line numbers based on chunk position
+            line_offset = chunk['start_line'] - 1
+            for issue in chunk_analysis.get("issues", []):
+                if "line_number" in issue:
+                    issue["line_number"] += line_offset
+                issue["file_path"] = str(file_path)
+                issue["chunk_id"] = chunk_id
+            
+            chunk_analysis["chunk_info"] = {
+                "id": chunk_id,
+                "start_line": chunk['start_line'],
+                "end_line": chunk['end_line'],
+                "size": chunk['size']
+            }
+            
+            return chunk_analysis
+            
+        except Exception as e:
+            return {"error": f"Chunk analysis failed: {str(e)}"}
+    
+    async def _merge_chunk_results(self, chunk_results: List[Dict[str, Any]], file_path: Path, language: str) -> Dict[str, Any]:
+        """Merge results from multiple chunks using LLM."""
+        try:
+            if not chunk_results:
+                return {"error": "No chunk results to merge"}
+            
+            # Collect all issues and metrics
+            all_issues = []
+            all_metrics = {}
+            chunk_summaries = []
+            
+            for chunk_result in chunk_results:
+                # Collect issues
+                for issue in chunk_result.get("issues", []):
+                    all_issues.append(issue)
+                
+                # Collect metrics
+                chunk_metrics = chunk_result.get("metrics", {})
+                for metric, value in chunk_metrics.items():
+                    if metric in all_metrics:
+                        all_metrics[metric] += value
+                    else:
+                        all_metrics[metric] = value
+                
+                # Collect summaries
+                if chunk_result.get("summary"):
+                    chunk_info = chunk_result.get("chunk_info", {})
+                    chunk_summaries.append(f"Chunk {chunk_info.get('id', 0)} (lines {chunk_info.get('start_line', 0)}-{chunk_info.get('end_line', 0)}): {chunk_result['summary']}")
+            
+            # Use LLM to create comprehensive summary if available
+            comprehensive_summary = ""
+            if self.llm and chunk_summaries:
+                try:
+                    merge_prompt = f"""
+                    Analyze the following chunk summaries from a large {language} file ({file_path.name}) and provide a comprehensive summary of the overall code quality:
+                    
+                    Chunk Summaries:
+                    {chr(10).join(chunk_summaries)}
+                    
+                    Total Issues Found: {len(all_issues)}
+                    
+                    Provide a concise overall summary highlighting the main quality concerns and patterns across all chunks.
+                    """
+                    
+                    summary_response = await self.llm.ainvoke([HumanMessage(content=merge_prompt)])
+                    comprehensive_summary = summary_response.content
+                except Exception:
+                    comprehensive_summary = f"Large file analysis completed. Found {len(all_issues)} issues across {len(chunk_results)} code chunks."
+            else:
+                comprehensive_summary = f"Large file analysis completed. Found {len(all_issues)} issues across {len(chunk_results)} code chunks."
+            
+            # Average out metrics
+            num_chunks = len(chunk_results)
+            for metric in all_metrics:
+                all_metrics[metric] = all_metrics[metric] / num_chunks
+            
+            # Remove duplicate issues (same line, same category)
+            unique_issues = []
+            seen_issues = set()
+            for issue in all_issues:
+                issue_key = (issue.get("line_number", 0), issue.get("category", ""), issue.get("title", ""))
+                if issue_key not in seen_issues:
+                    seen_issues.add(issue_key)
+                    unique_issues.append(issue)
+            
+            return {
+                "issues": unique_issues,
+                "metrics": all_metrics,
+                "summary": comprehensive_summary,
+                "chunk_count": len(chunk_results),
+                "total_size": sum(chunk.get("chunk_info", {}).get("size", 0) for chunk in chunk_results),
+                "is_chunked_analysis": True
+            }
+            
+        except Exception as e:
+            logging.error(f"Failed to merge chunk results: {e}")
+            # Return basic merged result
+            all_issues = []
+            for chunk_result in chunk_results:
+                all_issues.extend(chunk_result.get("issues", []))
+            
+            return {
+                "issues": all_issues,
+                "metrics": {},
+                "summary": f"Chunked analysis completed with {len(all_issues)} issues found.",
+                "chunk_count": len(chunk_results),
+                "is_chunked_analysis": True
+            }
     
     def _generate_recommendations(self, issues: List[Dict]) -> List[str]:
         """Generate high-level recommendations based on issues."""

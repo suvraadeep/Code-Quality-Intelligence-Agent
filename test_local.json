@@ -1,0 +1,404 @@
+{
+  "metadata": {
+    "generated_at": "2025-09-11T19:52:28.447801",
+    "version": "1.0.0",
+    "tool": "Code Quality Intelligence Agent"
+  },
+  "analysis": {
+    "summary": {
+      "total_files": 2,
+      "total_issues": 11,
+      "metrics": {
+        "complexity_score": 2.25,
+        "maintainability_score": 0.0,
+        "security_score": 0.0,
+        "overall_score": 0.0
+      }
+    },
+    "issues": [
+      {
+        "category": "security",
+        "severity": "high",
+        "line_number": 14,
+        "title": "pattern",
+        "description": "Use of eval() is dangerous",
+        "suggestion": "",
+        "code_snippet": "def dangerous_eval(code):",
+        "file_path": "sample_code\\module_a.py"
+      },
+      {
+        "category": "security",
+        "severity": "high",
+        "line_number": 15,
+        "title": "pattern",
+        "description": "Use of eval() is dangerous",
+        "suggestion": "",
+        "code_snippet": "return eval(code)",
+        "file_path": "sample_code\\module_a.py"
+      },
+      {
+        "category": "security",
+        "severity": "high",
+        "line_number": 16,
+        "title": "pattern",
+        "description": "Unsafe deserialization (pickle)",
+        "suggestion": "",
+        "code_snippet": "return pickle.loads(p)",
+        "file_path": "sample_code\\module_b.py"
+      },
+      {
+        "category": "maintainability",
+        "severity": "low",
+        "line_number": 5,
+        "title": "missing_docstring",
+        "description": "Function \"add\" missing docstring",
+        "suggestion": "",
+        "code_snippet": "",
+        "file_path": "sample_code\\module_a.py"
+      },
+      {
+        "category": "maintainability",
+        "severity": "low",
+        "line_number": 14,
+        "title": "missing_docstring",
+        "description": "Function \"dangerous_eval\" missing docstring",
+        "suggestion": "",
+        "code_snippet": "",
+        "file_path": "sample_code\\module_a.py"
+      },
+      {
+        "category": "maintainability",
+        "severity": "low",
+        "line_number": 20,
+        "title": "pattern",
+        "description": "Bare except detected; catch specific exceptions",
+        "suggestion": "",
+        "code_snippet": "except:",
+        "file_path": "sample_code\\module_a.py"
+      },
+      {
+        "category": "maintainability",
+        "severity": "low",
+        "line_number": 4,
+        "title": "missing_docstring",
+        "description": "Function \"compute\" missing docstring",
+        "suggestion": "",
+        "code_snippet": "",
+        "file_path": "sample_code\\module_b.py"
+      },
+      {
+        "category": "maintainability",
+        "severity": "low",
+        "line_number": 14,
+        "title": "missing_docstring",
+        "description": "Function \"load_pickle\" missing docstring",
+        "suggestion": "",
+        "code_snippet": "",
+        "file_path": "sample_code\\module_b.py"
+      },
+      {
+        "category": "code_duplication",
+        "severity": "low",
+        "line_number": 3,
+        "title": "Duplicate code block detected",
+        "description": "This block appears 2 times across the codebase.",
+        "suggestion": "Extract common logic into a reusable function/module to reduce duplication.",
+        "code_snippet": "",
+        "file_path": "sample_code\\module_a.py"
+      },
+      {
+        "category": "code_duplication",
+        "severity": "low",
+        "line_number": 12,
+        "title": "Duplicate code block detected",
+        "description": "This block appears 3 times across the codebase.",
+        "suggestion": "Extract common logic into a reusable function/module to reduce duplication.",
+        "code_snippet": "",
+        "file_path": "sample_code\\module_a.py"
+      },
+      {
+        "category": "code_duplication",
+        "severity": "low",
+        "line_number": 2,
+        "title": "Duplicate code block detected",
+        "description": "This block appears 3 times across the codebase.",
+        "suggestion": "Extract common logic into a reusable function/module to reduce duplication.",
+        "code_snippet": "",
+        "file_path": "sample_code\\module_b.py"
+      }
+    ],
+    "file_analyses": {
+      "sample_code\\module_a.py": {
+        "issues": [
+          {
+            "category": "security",
+            "severity": "high",
+            "line_number": 14,
+            "title": "pattern",
+            "description": "Use of eval() is dangerous",
+            "suggestion": "",
+            "code_snippet": "def dangerous_eval(code):",
+            "file_path": "sample_code\\module_a.py"
+          },
+          {
+            "category": "security",
+            "severity": "high",
+            "line_number": 15,
+            "title": "pattern",
+            "description": "Use of eval() is dangerous",
+            "suggestion": "",
+            "code_snippet": "return eval(code)",
+            "file_path": "sample_code\\module_a.py"
+          },
+          {
+            "category": "maintainability",
+            "severity": "low",
+            "line_number": 5,
+            "title": "missing_docstring",
+            "description": "Function \"add\" missing docstring",
+            "suggestion": "",
+            "code_snippet": "",
+            "file_path": "sample_code\\module_a.py"
+          },
+          {
+            "category": "maintainability",
+            "severity": "low",
+            "line_number": 14,
+            "title": "missing_docstring",
+            "description": "Function \"dangerous_eval\" missing docstring",
+            "suggestion": "",
+            "code_snippet": "",
+            "file_path": "sample_code\\module_a.py"
+          },
+          {
+            "category": "maintainability",
+            "severity": "low",
+            "line_number": 20,
+            "title": "pattern",
+            "description": "Bare except detected; catch specific exceptions",
+            "suggestion": "",
+            "code_snippet": "except:",
+            "file_path": "sample_code\\module_a.py"
+          }
+        ],
+        "metrics": {
+          "complexity_score": 2.5
+        },
+        "summary": "",
+        "duplication_fingerprints": [
+          {
+            "hash": "ddfb34ed0e876304fa095f6e2afea376bfeeac1e",
+            "start_line": 1,
+            "end_line": 10,
+            "size": 105
+          },
+          {
+            "hash": "a715d86b3441f83aae6dbb949665df9fbf560e09",
+            "start_line": 2,
+            "end_line": 11,
+            "size": 108
+          },
+          {
+            "hash": "c38fda1ecf79ad22c052755f75430518d27ba008",
+            "start_line": 3,
+            "end_line": 12,
+            "size": 97
+          },
+          {
+            "hash": "c38fda1ecf79ad22c052755f75430518d27ba008",
+            "start_line": 4,
+            "end_line": 13,
+            "size": 97
+          },
+          {
+            "hash": "bbd6300dc9d40535ed16d4a94d563fe1ec36dda9",
+            "start_line": 5,
+            "end_line": 14,
+            "size": 123
+          },
+          {
+            "hash": "9f4c24a95fa20522738fcc358e9f83244d5e3515",
+            "start_line": 6,
+            "end_line": 15,
+            "size": 126
+          },
+          {
+            "hash": "43ddf5dd90b4dbad309e5198fc480f2105e051ff",
+            "start_line": 7,
+            "end_line": 16,
+            "size": 116
+          },
+          {
+            "hash": "7a1c00b7a345fca980cb116f7ec6673558e707fd",
+            "start_line": 8,
+            "end_line": 17,
+            "size": 97
+          },
+          {
+            "hash": "b0388fa123643d846ad044a8569d9342a2358f82",
+            "start_line": 9,
+            "end_line": 18,
+            "size": 83
+          },
+          {
+            "hash": "b1c74b7c286971777582d72c236c1bff9578015e",
+            "start_line": 10,
+            "end_line": 19,
+            "size": 82
+          },
+          {
+            "hash": "0ffa9625c2c7b49b260a58a80edd8bfb10b47a32",
+            "start_line": 11,
+            "end_line": 20,
+            "size": 79
+          },
+          {
+            "hash": "f92f8eab794112b0dd2ef9f91bb943b3c9d6c11c",
+            "start_line": 12,
+            "end_line": 21,
+            "size": 71
+          },
+          {
+            "hash": "f92f8eab794112b0dd2ef9f91bb943b3c9d6c11c",
+            "start_line": 13,
+            "end_line": 22,
+            "size": 71
+          },
+          {
+            "hash": "f92f8eab794112b0dd2ef9f91bb943b3c9d6c11c",
+            "start_line": 14,
+            "end_line": 23,
+            "size": 71
+          },
+          {
+            "hash": "3c062c6d237cfa84d6e859f2c86667551040749f",
+            "start_line": 15,
+            "end_line": 24,
+            "size": 45
+          }
+        ],
+        "debug": {
+          "language": "python",
+          "static_counts": {
+            "security": 2,
+            "complexity": 0,
+            "style": 3,
+            "patterns": 0
+          },
+          "merged_issue_count": 5
+        }
+      },
+      "sample_code\\module_b.py": {
+        "issues": [
+          {
+            "category": "security",
+            "severity": "high",
+            "line_number": 16,
+            "title": "pattern",
+            "description": "Unsafe deserialization (pickle)",
+            "suggestion": "",
+            "code_snippet": "return pickle.loads(p)",
+            "file_path": "sample_code\\module_b.py"
+          },
+          {
+            "category": "maintainability",
+            "severity": "low",
+            "line_number": 4,
+            "title": "missing_docstring",
+            "description": "Function \"compute\" missing docstring",
+            "suggestion": "",
+            "code_snippet": "",
+            "file_path": "sample_code\\module_b.py"
+          },
+          {
+            "category": "maintainability",
+            "severity": "low",
+            "line_number": 14,
+            "title": "missing_docstring",
+            "description": "Function \"load_pickle\" missing docstring",
+            "suggestion": "",
+            "code_snippet": "",
+            "file_path": "sample_code\\module_b.py"
+          }
+        ],
+        "metrics": {
+          "complexity_score": 2.0
+        },
+        "summary": "",
+        "duplication_fingerprints": [
+          {
+            "hash": "e70cc0c4a9052192159b5f11ff8e455e4a446289",
+            "start_line": 1,
+            "end_line": 10,
+            "size": 145
+          },
+          {
+            "hash": "b4824248e100b2fce5624f3c2be47fdd39abcef3",
+            "start_line": 2,
+            "end_line": 11,
+            "size": 134
+          },
+          {
+            "hash": "b4824248e100b2fce5624f3c2be47fdd39abcef3",
+            "start_line": 3,
+            "end_line": 12,
+            "size": 134
+          },
+          {
+            "hash": "b4824248e100b2fce5624f3c2be47fdd39abcef3",
+            "start_line": 4,
+            "end_line": 13,
+            "size": 134
+          },
+          {
+            "hash": "adc71031bcfa03079350195603f4166ed3e8c523",
+            "start_line": 5,
+            "end_line": 14,
+            "size": 133
+          },
+          {
+            "hash": "f9a9bc0cc2541529c6a2687d9550746283d37f7b",
+            "start_line": 6,
+            "end_line": 15,
+            "size": 135
+          },
+          {
+            "hash": "a19ff6efa1969d0109922ee100407c9b3e516c44",
+            "start_line": 7,
+            "end_line": 16,
+            "size": 141
+          },
+          {
+            "hash": "d2f8552f1cb178bcd6aa0d1f237e852e170efcdf",
+            "start_line": 8,
+            "end_line": 17,
+            "size": 130
+          },
+          {
+            "hash": "27f63e0c14dc792e3c1264f27e9c7767a8edcc25",
+            "start_line": 9,
+            "end_line": 18,
+            "size": 105
+          },
+          {
+            "hash": "48ed9927cecb6a13d958453bd7bd15780e784c1c",
+            "start_line": 10,
+            "end_line": 19,
+            "size": 99
+          }
+        ],
+        "debug": {
+          "language": "python",
+          "static_counts": {
+            "security": 1,
+            "complexity": 0,
+            "style": 2,
+            "patterns": 0
+          },
+          "merged_issue_count": 3
+        }
+      }
+    },
+    "recommendations": []
+  }
+}

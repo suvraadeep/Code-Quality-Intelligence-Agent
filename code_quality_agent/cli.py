@@ -27,11 +27,56 @@ except Exception:
 console = Console(emoji=False)
 
 
+def launch_web_interface():
+    """Launch the Streamlit web interface."""
+    try:
+        import subprocess
+        import sys
+        from pathlib import Path
+        
+        console.print("[blue]Launching Code Quality Intelligence Web Interface...[/blue]")
+        console.print("[dim]This will open in your web browser at http://localhost:8501[/dim]\n")
+        
+        # Find the web app path
+        current_dir = Path(__file__).parent.parent
+        web_app_path = current_dir / "Webpage" / "app.py"
+        
+        if not web_app_path.exists():
+            # Try alternative path
+            web_app_path = current_dir / "cqi-web.py"
+        
+        if not web_app_path.exists():
+            console.print("[red]Web interface files not found. Please ensure the Webpage directory exists.[/red]")
+            console.print("[blue]Try: python cqi-web.py[/blue]")
+            return
+        
+        # Launch Streamlit
+        cmd = [
+            sys.executable, "-m", "streamlit", "run", str(web_app_path),
+            "--server.address", "localhost",
+            "--server.port", "8501",
+            "--browser.gatherUsageStats", "false"
+        ]
+        
+        subprocess.run(cmd)
+        
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Web interface stopped by user[/yellow]")
+    except ImportError:
+        console.print("[red]Streamlit not installed. Install with: pip install streamlit[/red]")
+    except Exception as e:
+        console.print(f"[red]Failed to launch web interface: {e}[/red]")
+        console.print("[blue]Try: python cqi-web.py or cd Webpage && streamlit run app.py[/blue]")
+
+
 @click.group()
 @click.version_option(version="1.0.0")
-def cli():
+@click.option('--web', is_flag=True, help='Launch the Streamlit web interface')
+def cli(web):
     """Code Quality Intelligence Agent - Analyze code repositories with AI-powered insights."""
-    pass
+    if web:
+        launch_web_interface()
+        return
 
 
 @cli.command()
