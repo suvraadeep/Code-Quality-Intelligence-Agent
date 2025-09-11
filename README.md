@@ -1,14 +1,46 @@
-<img width="1696" height="608" alt="Gemini_Generated_Image_r3zg35r3zg35r3zg (1)" src="https://github.com/user-attachments/assets/3fb55c0c-5fd0-471a-9753-6ba384243b2b" />
+<div align="center">
 
+<img src="https://github.com/user-attachments/assets/3fb55c0c-5fd0-471a-9753-6ba384243b2b" alt="Code Quality Intelligence Agent Logo" width="500"/>
 
-# Code Quality Intelligence Agent
+<p align="center">
+  <a href="https://pypi.org/project/code-quality-intelligence">📦 PyPI Package</a>
+  &nbsp;|&nbsp;
+  <a href="#-examples">💡 Examples</a>
+  &nbsp;|&nbsp;
+  <a href="https://github.com/YOUR_USERNAME/YOUR_REPOSITORY">⭐ Star Us</a>
+</p>
 
-A comprehensive AI-powered code quality analysis tool that provides intelligent insights into codebases using advanced language models, static analysis techniques, and semantic search capabilities.
+</div>
 
+## What is Code Quality Intelligence Agent?
 
-## Overview
+Code Quality Intelligence Agent (CQI) is an AI-powered runtime for analyzing and improving code quality across large codebases. It combines static analysis, semantic search, and large language models to provide actionable insights for developers and teams.
 
-The Code Quality Intelligence Agent is an enterprise-grade tool that combines traditional static analysis with modern AI capabilities to provide comprehensive code quality assessment. The system integrates multiple analysis engines, semantic search capabilities, and conversational AI to deliver actionable insights for software development teams.
+With CQI, you can analyze local projects or GitHub repositories in seconds, detect vulnerabilities, measure complexity, and surface hidden patterns in your code. The system integrates Bandit, Radon, and Semgrep for static checks while enhancing results with deep AST parsing and AI-powered reasoning.
+
+In a single command, you can run a full analysis and generate rich reports:
+
+```bash
+cqi analyze https://github.com/pallets/flask --format console
+```
+
+Or switch to interactive mode for real-time, context-aware AI chat about your codebase:
+
+```bash
+cqi analyze sample_code --interactive
+```
+
+But the real advantage of CQI is its architecture:
+
+* **AI-Augmented Static Analysis**: Traditional tools enriched with LLM insights for deeper coverage.
+* **Enterprise-Ready RAG System**: Semantic search over code with persistent vector databases for fast retrieval.
+* **Multi-Format Reports**: Console, JSON, and Markdown outputs for both humans and CI/CD pipelines.
+* **Web Dashboard**: A professional Streamlit-based interface with charts, metrics, and interactive visualizations.
+* **Privacy First**: Your code never leaves your system—analysis runs locally with your own API key.
+
+For organizations and developers, CQI provides a complete solution: a fast CLI for everyday use, a professional web UI for visualization, and extensibility to plug in new models, embeddings, or workflows.
+Unlike conventional static analysis, CQI brings a novel AI-driven architecture: it merges rule-based detection with semantic understanding, giving teams a powerful assistant that doesn’t just detect issues—it explains them.
+
 
 ## **Checklist**
 
@@ -23,7 +55,7 @@ The Code Quality Intelligence Agent is an enterprise-grade tool that combines tr
 - [x] **Cross-platform compatibility verified**  
 - [x] **Performance acceptable for production**  
 
-### **Future Work**
+### **Future Features**
 - [ ] **Cross LLM model inference provider**  
 - [ ] **Cross embedding integration**  
 - [ ] **Dashboard and visualization**  
