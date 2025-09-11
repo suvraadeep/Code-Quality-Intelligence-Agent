@@ -33,7 +33,7 @@ else:
 
 setup(
     name="code-quality-intelligence",
-    version="1.6.1",
+    version="1.6.2",
     description="AI-powered code quality analysis tool with GitHub integration and interactive chatbot",
     long_description=long_description,
     long_description_content_type="text/markdown",
