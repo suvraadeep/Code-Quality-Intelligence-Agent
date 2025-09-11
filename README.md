@@ -44,8 +44,6 @@ Unlike conventional static analysis, CQI brings a novel AI-driven architecture: 
 
 ## Table of Contents
 
-## Table of Contents
-
 - [Project Overview and Architecture](#project-overview-and-architecture)
   - [Core Components and Their Interactions](#core-components-and-their-interactions)
     - [CodeQualityAgent - The Central Orchestrator](#1-codequalityagent---the-central-orchestrator)
