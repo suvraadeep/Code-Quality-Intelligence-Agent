@@ -112,8 +112,8 @@ pip install -r requirements.txt
 
 ### Package Installation
 ```bash
-# Install as package (after building)
-pip install dist/code_quality_intelligence-1.0.0-py3-none-any.whl
+# Install as package
+pip install code_quality_intelligence
 
 # Global commands available after installation
 cqi analyze /path/to/code
