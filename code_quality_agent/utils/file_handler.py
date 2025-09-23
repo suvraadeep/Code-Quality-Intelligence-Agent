@@ -1,4 +1,32 @@
-"""File handling utilities for the Code Quality Agent."""
+"""
+Purpose: File operations and repository handling
+
+High-level Overview:
+Handles file system operations, GitHub repository cloning, language detection, and file statistics. Supports both local files and remote GitHub repositories.
+
+Key Components:
+- GitHub repository cloning
+- File system traversal
+- Language detection
+- File filtering and size limits
+- Temporary directory management
+
+Functions/Classes:
+- `class FileHandler`: File handling operations
+  - `__init__(self)`: Initialize handler
+  - `get_code_files(self, path, branch=None)`: Get code files from path or GitHub
+  - `_is_github_url(self, path)`: Check if path is GitHub URL
+  - `_parse_github_url(self, github_url)`: Parse GitHub URL components
+  - `_get_files_from_github(self, github_url, branch=None)`: Clone and get files from GitHub
+  - `_get_files_from_local(self, path)`: Get files from local path
+  - `_is_supported_file(self, file_path)`: Check if file extension is supported
+  - `_should_ignore_file(self, file_path)`: Check if file should be ignored
+  - `detect_language(self, file_path)`: Detect programming language
+  - `get_file_content(self, file_path)`: Safely read file content
+  - `get_file_stats(self, file_path)`: Get file statistics
+  - `_count_comment_lines(self, content, language)`: Count comment lines by language
+  - `cleanup(self)`: Clean up temporary directories
+"""
 
 import os
 import tempfile

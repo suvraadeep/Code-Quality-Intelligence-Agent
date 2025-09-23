@@ -1,4 +1,31 @@
-"""Command Line Interface for Code Quality Intelligence Agent."""
+"""
+Purpose: Command-line interface for the Code Quality Intelligence Agent
+
+High-level Overview:
+Comprehensive CLI implementation using Click framework with Rich terminal output. Provides multiple commands for analysis, setup, information gathering, and interactive features.
+
+Key Components:
+- Click-based command structure
+- Rich terminal output with colors and formatting
+- Multiple analysis modes (local, GitHub, interactive)
+- Web interface launcher
+- Configuration management
+
+Functions/Classes:
+- `launch_web_interface()`: Launch Streamlit web interface
+- `@cli.group()`: Main CLI group with version and web options
+- `@cli.command() analyze`: Main analysis command with multiple options
+- `async _run_analysis(path, output, format, interactive, branch)`: Execute analysis workflow
+- `_show_analysis_start(path)`: Display analysis start information
+- `async _interactive_mode(agent, analysis_results)`: Interactive Q&A mode
+- `@cli.command() setup`: Setup and configuration command
+- `@cli.command() info`: Quick codebase information command
+- `@cli.command() dashboard`: Launch Streamlit dashboard
+- `@cli.command() chat`: Enhanced interactive chat session
+- `async _enhanced_chat_session(path)`: Enhanced chat with RAG features
+- `_show_chat_help()`: Display chat help commands
+- `_show_rag_stats(rag_system)`: Display RAG system statistics
+"""
 
 import asyncio
 import sys

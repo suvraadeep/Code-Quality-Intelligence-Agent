@@ -1,4 +1,34 @@
-"""Core Code Quality Intelligence Agent using LangChain and Groq."""
+"""
+Purpose: Core Code Quality Intelligence Agent implementation
+
+High-level Overview:
+The main orchestrator that coordinates all analysis components, manages LLM interactions, handles large file chunking, and integrates with RAG systems for enhanced analysis.
+
+Key Components:
+- LangChain integration with Groq LLM
+- Code analysis pipeline management
+- Large file handling with intelligent chunking
+- RAG system integration for enhanced Q&A
+- Multi-language support with static analyzers
+
+Functions/Classes:
+- `class CodeQualityAgent`: Main agent class
+  - `__init__(self)`: Initialize agent with Groq LLM, analyzers, and RAG system
+  - `_setup_analysis_chain(self)`: Configure LLM chain for code analysis with structured prompts
+  - `_setup_qa_chain(self)`: Configure interactive Q&A chain for user questions
+  - `async analyze_codebase(self, path, branch=None)`: Main analysis method that processes entire codebases
+  - `async _analyze_file(self, file_path)`: Analyze individual files with LLM and static analyzers
+  - `async _analyze_large_file(self, file_path, content)`: Handle files larger than 1MB with chunking
+  - `_create_code_chunks(self, content, language)`: Intelligently split code into meaningful chunks
+  - `_adjust_python_chunk_boundary(self, lines, start, end)`: Adjust chunk boundaries for Python code
+  - `_adjust_js_chunk_boundary(self, lines, start, end)`: Adjust chunk boundaries for JavaScript code
+  - `async _analyze_chunk(self, chunk, language, file_path, chunk_id)`: Analyze individual code chunks
+  - `async _merge_chunk_results(self, chunk_results, file_path, language)`: Merge results from multiple chunks
+  - `_generate_recommendations(self, issues)`: Generate high-level improvement recommendations
+  - `async ask_question(self, question, analysis_context)`: Answer questions about analyzed code
+  - `_offline_answer(self, question, ctx)`: Provide answers without LLM using heuristics
+  
+"""
 
 from typing import List, Dict, Any, Optional
 from pathlib import Path

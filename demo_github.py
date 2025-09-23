@@ -1,6 +1,19 @@
 """
-GitHub Integration Demo Script for Code Quality Intelligence Agent
-This script demonstrates the GitHub repository analysis capabilities.
+Purpose: GitHub integration demo
+
+High-level Overview:
+Demonstrates GitHub repository analysis capabilities with real repository examples.
+
+Key Components:
+- GitHub repository analysis
+- Real-time analysis demonstration
+- Results formatting and display
+
+Functions/Classes:
+- `async demo_github_analysis()`: GitHub analysis demo
+  - Analyzes sample GitHub repositories
+  - Shows analysis results
+  - Demonstrates GitHub integration features
 """
 
 import asyncio

@@ -1,8 +1,30 @@
 """
-RAG (Retrieval-Augmented Generation) System for Code Quality Intelligence Agent.
+Purpose: Main RAG system with multiple backend support
 
-This module implements a vector database system for storing and retrieving code chunks,
-enabling efficient analysis of large codebases through semantic search.
+High-level Overview:
+Orchestrates different RAG implementations (ChromaDB, FAISS, Simple) with automatic fallback mechanisms. Provides unified interface for vector storage and retrieval.
+
+Key Components:
+- Multiple RAG backend support
+- Automatic fallback mechanisms
+- ChromaDB integration
+- Unified RAG interface
+- Code-specific chunking strategies
+
+Functions/Classes:
+- `class CodeRAGSystem`: Main RAG orchestrator
+  - `__init__(self, persist_directory)`: Initialize with backend detection
+  - `_setup_rag_system(self)`: Setup RAG system with fallbacks
+  - `_setup_chromadb(self)`: Setup ChromaDB backend
+  - `is_available(self)`: Check if any RAG backend is available
+  - `add_codebase(self, files, analysis_results)`: Add code to vector database
+  - `search_similar_code(self, query, n_results=5, filters=None)`: Search for similar code
+  - `get_code_context(self, question, analysis_results)`: Get relevant context for questions
+  - `_detect_language(self, file_path)`: Detect programming language
+  - `_count_tokens(self, text)`: Count tokens in text
+  - `_classify_content(self, content)`: Classify code content type
+  - `get_collection_stats(self)`: Get collection statistics
+  - `clear_collection(self)`: Clear vector database
 """
 
 import os

@@ -1,6 +1,16 @@
 """
-Entry point script for Code Quality Intelligence Agent package.
-This allows users to run the tool with: python cqi.py [commands]
+Purpose: Main entry point script
+
+High-level Overview:
+Standalone entry point that allows running the tool with `python cqi.py [commands]` by importing and executing the CLI interface.
+
+Key Components:
+- Path setup for package imports
+- CLI interface execution
+
+Functions/Classes:
+- `Path setup`: Adds package to Python path
+- `CLI execution`: Imports and runs the main CLI interface
 """
 
 import sys

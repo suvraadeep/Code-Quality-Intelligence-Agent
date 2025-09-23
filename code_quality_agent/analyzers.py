@@ -1,4 +1,31 @@
-"""Code analyzers for different quality aspects."""
+"""
+Purpose: Static code analyzers for different languages and quality aspects
+
+High-level Overview:
+Implements comprehensive static analysis using tools like Bandit (security), Radon (complexity), and Semgrep (patterns). Includes AST-based analysis and regex pattern matching for reliable issue detection.
+
+Key Components:
+- Multi-language static analysis support
+- Security vulnerability detection
+- Code complexity measurement
+- Style and best practice checking
+- Code duplication fingerprinting
+
+Functions/Classes:
+- `class CodeAnalyzer`: Main analyzer class
+  - `__init__(self)`: Initialize with available analysis tools
+  - `_check_available_tools(self)`: Detect which analysis tools are installed
+  - `analyze_python_file(self, file_path)`: Comprehensive Python file analysis
+  - `analyze_javascript_file(self, file_path)`: JavaScript/TypeScript file analysis
+  - `analyze_jupyter_file(self, file_path)`: Jupyter notebook analysis
+  - `_analyze_python_ast(self, tree, content)`: AST-based Python analysis
+  - `_augment_python_with_patterns(self, content, results)`: Regex-based Python security patterns
+  - `_analyze_js_patterns(self, content)`: JavaScript security and style pattern analysis
+  - `_run_bandit_analysis(self, file_path)`: Security analysis using Bandit tool
+  - `_run_radon_analysis(self, content)`: Complexity analysis using Radon tool
+  - `_run_semgrep_analysis(self, file_path)`: Pattern analysis using Semgrep tool
+  - `_fingerprint_code_blocks(self, content, language)`: Generate code duplication fingerprints
+"""
 
 import ast
 import re

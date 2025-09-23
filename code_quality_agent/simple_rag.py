@@ -1,6 +1,25 @@
 """
-Simple RAG System without external vector databases.
-This provides basic RAG functionality using simple text matching and keyword search.
+Purpose: Basic RAG system using keyword matching
+
+High-level Overview:
+Provides basic RAG functionality using simple text matching and keyword search without external vector databases.
+
+Key Components:
+- Keyword-based search
+- Simple text chunking
+- No external dependencies
+- Basic context retrieval
+- Fallback RAG implementation
+
+Functions/Classes:
+- `class SimpleRAGSystem`: Basic RAG system
+  - `__init__(self)`: Initialize with basic structures
+  - `is_available(self)`: Always returns True (no dependencies)
+  - `add_codebase(self, files, analysis_results)`: Add files with keyword indexing
+  - `_index_keywords(self, content, doc_index)`: Extract and index keywords
+  - `get_code_context(self, question, analysis_context, top_k=3)`: Get context via keyword matching
+  - `get_collection_stats(self)`: Get basic statistics
+  - `clear_collection(self)`: Clear stored documents
 """
 
 import json

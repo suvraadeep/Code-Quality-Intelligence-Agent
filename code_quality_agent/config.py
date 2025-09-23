@@ -1,4 +1,29 @@
-"""Configuration settings for the Code Quality Intelligence Agent."""
+"""
+Purpose: Configuration settings and API key management
+
+High-level Overview:
+Centralized configuration management with support for environment variables, file analysis settings, and quality assessment parameters.
+
+Key Components:
+- Environment variable management
+- File analysis configuration
+- Quality category definitions
+- Severity level mappings
+
+Functions/Classes:
+- `class Config`: Configuration class with class methods
+  - Class Variables:
+    - `DEFAULT_MODEL`: LLM model name ("deepseek-r1-distill-llama-70b")
+    - `TEMPERATURE`: LLM temperature setting (0.1)
+    - `MAX_TOKENS`: Maximum LLM tokens (4096)
+    - `MAX_FILE_SIZE`: Maximum file size for analysis (1MB)
+    - `SUPPORTED_EXTENSIONS`: Set of supported file extensions
+    - `QUALITY_CATEGORIES`: List of quality analysis categories
+    - `SEVERITY_LEVELS`: Dictionary mapping severity levels to numeric values
+  - `@classmethod validate(cls)`: Validate configuration settings
+  - `@classmethod has_groq_api_key(cls)`: Check if API key is available
+  - `@classmethod get_groq_api_key(cls)`: Get API key from environment
+"""
 
 import os
 from pathlib import Path

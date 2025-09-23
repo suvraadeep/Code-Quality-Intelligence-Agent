@@ -1,8 +1,32 @@
 """
-Conversational Chatbot Interface for Code Quality Intelligence Agent.
+Purpose: Conversational interface for code quality discussions
 
-This module provides an enhanced conversational interface that supports follow-ups,
-context awareness, and natural language interactions about code analysis.
+High-level Overview:
+Provides an enhanced conversational AI interface that maintains context, supports follow-up questions, and integrates with RAG systems for better code understanding.
+
+Key Components:
+- LangChain-based conversational AI
+- Context-aware conversations with memory
+- RAG integration for code context
+- Fallback responses for offline mode
+- Conversation history management
+
+Functions/Classes:
+- `class CodeQualityChatbot`: Enhanced chatbot class
+  - `__init__(self, rag_system=None)`: Initialize chatbot with RAG and LLM
+  - `_setup_chatbot(self)`: Configure conversational prompts and chains
+  - `set_analysis_context(self, analysis_results)`: Set current analysis context
+  - `chat(self, message)`: Main chat method with context awareness
+  - `_summarize_analysis_context(self)`: Create analysis summary for context
+  - `_format_conversation_history(self)`: Format recent conversation for context
+  - `_fallback_response(self, message)`: Pattern-based responses without LLM
+  - `_get_security_response(self)`: Security-focused response generation
+  - `_get_complexity_response(self)`: Complexity-focused response generation
+  - `_get_testing_response(self)`: Testing-focused response generation
+  - `_get_performance_response(self)`: Performance-focused response generation
+  - `_get_documentation_response(self)`: Documentation-focused response generation
+  - `get_conversation_summary(self)`: Get conversation statistics
+  - `clear_conversation(self)`: Clear conversation history
 """
 
 import json

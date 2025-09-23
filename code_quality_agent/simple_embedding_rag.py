@@ -1,7 +1,28 @@
 """
-Simple Embedding-based RAG System for Code Analysis
+Purpose: Simple embedding-based RAG using TF-IDF-like features
 
-Uses FAISS with basic text embeddings for semantic code search without complex dependencies.
+High-level Overview:
+Implements a lightweight RAG system using custom feature extraction and FAISS, designed to work without complex dependencies like SentenceTransformers.
+
+Key Components:
+- Custom code feature extraction
+- FAISS vector storage
+- Pattern-based embeddings
+- Lightweight dependencies
+- Code-specific features
+
+Functions/Classes:
+- `class SimpleEmbeddingRAG`: Simple embedding RAG system
+  - `__init__(self, persist_directory)`: Initialize with custom embeddings
+  - `_setup_system(self)`: Setup system components
+  - `_extract_code_features(self, text)`: Extract code-specific features
+  - `is_available(self)`: Check system availability
+  - `add_codebase(self, files, analysis_results)`: Add code with feature extraction
+  - `get_code_context(self, query, analysis_context, top_k=3)`: Get context using features
+  - `get_collection_stats(self)`: Get collection statistics
+  - `search_similar_code(self, query, top_k=5)`: Search using feature similarity
+  - `clear_collection(self)`: Clear stored data
+
 """
 
 import os

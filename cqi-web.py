@@ -1,6 +1,19 @@
 """
-Code Quality Intelligence Agent - Web Interface Launcher
-Run this script to launch the web interface.
+Purpose: Web interface launcher
+
+High-level Overview:
+Dedicated launcher for the Streamlit web interface that finds and executes the web application.
+
+Key Components:
+- Web application path detection
+- Streamlit server configuration
+- Error handling for missing components
+
+Functions/Classes:
+- `main()`: Main launcher function
+  - Finds web application files
+  - Configures Streamlit server settings
+  - Launches web interface with proper error handling
 """
 
 import subprocess

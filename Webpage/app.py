@@ -1,7 +1,32 @@
 """
-Code Quality Intelligence Agent - Web Interface
-A comprehensive Streamlit web application that provides all CLI functionality
-for analyzing code quality in local files and GitHub repositories.
+Purpose: Streamlit web application
+
+High-level Overview:
+Comprehensive web interface built with Streamlit that provides all CLI functionality through a user-friendly web interface with interactive charts and visualizations.
+
+Key Components:
+- Multi-page Streamlit application
+- Interactive analysis interface
+- Real-time chat functionality
+- Data visualization with Plotly
+- Session state management
+
+Functions/Classes:
+- `initialize_session_state()`: Initialize Streamlit session variables
+- `setup_rag_and_chatbot()`: Initialize RAG system and chatbot
+- `@st.cache_data run_analysis(path, branch=None)`: Cached analysis execution
+- `run_codebase_info(path)`: Get codebase information
+- `create_overview_metrics(results)`: Create metrics dashboard
+- `create_severity_chart(issues)`: Create severity distribution chart
+- `create_category_chart(issues)`: Create category distribution chart
+- `create_file_analysis_table(results)`: Create file analysis table
+- `create_chatbot_interface()`: Create chat interface
+- `create_rag_stats()`: Create RAG statistics display
+- **`setup_page()`**: Configuration and setup page
+- `info_page()`: Codebase information page
+- `analyze_page()`: Main analysis page with tabs
+- `chat_page()`: Enhanced chat page
+- `main()`: Main application with navigation
 """
 
 import streamlit as st

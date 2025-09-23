@@ -1,4 +1,33 @@
-"""Report generation for code quality analysis."""
+"""
+Purpose: Generate comprehensive code quality reports
+
+High-level Overview:
+Creates rich, formatted reports in multiple formats (console, JSON, Markdown) with detailed issue analysis, metrics, and recommendations.
+
+Key Components:
+- Rich console output with colors and formatting
+- Multiple output formats
+- Issue categorization and prioritization
+- Metrics visualization
+- File-level analysis details
+
+Functions/Classes:
+- `class ReportGenerator`: Report generation class
+  - `__init__(self)`: Initialize with Rich console
+  - `generate_console_report(self, analysis_results)`: Generate rich console report
+  - `_print_header(self, results)`: Print report header with metadata
+  - `_print_summary(self, results)`: Print analysis summary with metrics
+  - `_print_issues_by_severity(self, issues)`: Print issues grouped by severity
+  - `_print_top_issues(self, issues, limit=10)`: Print top issues with details
+  - `_print_issue_detail(self, issue, index)`: Print detailed issue information
+  - `_print_recommendations(self, recommendations)`: Print improvement recommendations
+  - `_print_file_details(self, file_analyses)`: Print file-level analysis
+  - `_get_issue_status(self, count)`: Get status emoji for issue count
+  - `_get_metric_status(self, metric, value)`: Get status emoji for metrics
+  - `generate_json_report(self, analysis_results, output_path)`: Generate JSON report
+  - `generate_markdown_report(self, analysis_results, output_path)`: Generate Markdown report
+
+"""
 
 from typing import Dict, List, Any
 from datetime import datetime

@@ -1,7 +1,31 @@
 """
-Embedding-based RAG System for Code Analysis
+Purpose: Advanced embedding-based RAG system using FAISS
 
-Uses FAISS vector database with code-specific embeddings for semantic code search.
+High-level Overview:
+Implements a sophisticated RAG system using FAISS vector database with SentenceTransformer embeddings for semantic code search and context retrieval.
+
+Key Components:
+- FAISS vector database integration
+- SentenceTransformer embeddings
+- Code-specific text splitting
+- Semantic similarity search
+- Persistent storage management
+
+Functions/Classes:
+- `class CodeEmbeddingRAG`: Advanced embedding RAG system
+  - `__init__(self, persist_directory)`: Initialize with FAISS and embeddings
+  - `_setup_system(self)`: Setup embedding model and text splitter
+  - `_load_or_create_index(self)`: Load existing or create new FAISS index
+  - `_save_index(self)`: Persist FAISS index and metadata
+  - `is_available(self)`: Check system availability
+  - `add_codebase(self, files, analysis_results)`: Add code to vector database
+  - `_prepare_code_chunk(self, chunk, file_path, file_analysis)`: Prepare chunks with context
+  - `get_code_context(self, query, analysis_context, top_k=3)`: Semantic search for context
+  - `get_collection_stats(self)`: Get database statistics
+  - `search_similar_code(self, query, top_k=5)`: Search for similar code chunks
+  - `clear_collection(self)`: Clear stored data
+  - `get_code_suggestions(self, query, analysis_results)`: Get code-specific suggestions
+
 """
 
 import os

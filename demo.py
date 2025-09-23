@@ -1,4 +1,23 @@
-"""Demo script for Code Quality Intelligence Agent."""
+"""
+Purpose: Interactive demo script
+
+High-level Overview:
+Comprehensive demonstration script that showcases the tool's capabilities with sample data and mock analysis results.
+
+Key Components:
+- Rich terminal output demonstrations
+- Sample analysis results
+- Feature showcases
+- Usage examples
+
+Functions/Classes:
+- `async run_demo()`: Main demo execution
+  - Shows sample security issues
+  - Demonstrates JavaScript analysis
+  - Simulates interactive Q&A
+  - Shows available report formats
+  - Provides usage examples
+"""
 
 import asyncio
 import os

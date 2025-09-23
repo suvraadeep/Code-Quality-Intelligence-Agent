@@ -1,4 +1,24 @@
-"""Setup script for Code Quality Intelligence Agent package."""
+"""
+Purpose: Package installation and distribution
+
+High-level Overview:
+Standard Python package setup script with comprehensive dependency management, entry points, and package metadata.
+
+Key Components:
+- Package metadata and versioning
+- Dependency specifications
+- Entry point definitions
+- Extra requirements for optional features
+
+Functions/Classes:
+- `setup()`: Main setup function with:
+  - Package name: "code-quality-intelligence"
+  - Version: "1.6.2"
+  - Author: "Suvraadeep Das"
+  - Dependencies: LangChain, Groq, Rich, GitPython, etc.
+  - Entry points: `cqi`, `code-quality`, `code-quality-agent`
+  - Extra requirements: `full`, `rag`, `dev`
+"""
 
 from setuptools import setup, find_packages
 from pathlib import Path
