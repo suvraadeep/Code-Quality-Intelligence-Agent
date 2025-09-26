@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://pypi.org/project/code-quality-intelligence">📦 PyPI Package</a>
   &nbsp;|&nbsp;
-  <a href="#-examples">💡 Examples</a>
+  <a href="https://github.com/suvraadeep/Code-Quality-Intelligence-Agent/blob/main/sample_run.md">💡 Example Run</a>
   &nbsp;|&nbsp;
   <a href="https://github.com/YOUR_USERNAME/YOUR_REPOSITORY">⭐ Star Us</a>
 </p>
