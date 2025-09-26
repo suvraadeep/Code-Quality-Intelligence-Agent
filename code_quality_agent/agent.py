@@ -199,6 +199,35 @@ class CodeQualityAgent:
             # Sort issues by severity
             all_issues.sort(key=lambda x: Config.SEVERITY_LEVELS.get(x.get("severity", "info"), 0), reverse=True)
             
+            # Build overall recommendations from per-file recs; ensure non-empty
+            overall_recommendations: List[str] = []
+            for fa in file_analyses.values():
+                if isinstance(fa, dict):
+                    for rec in fa.get("recommendations", []) or []:
+                        if rec and rec not in overall_recommendations:
+                            overall_recommendations.append(rec)
+
+            if self.llm and not overall_recommendations:
+                try:
+                    # Ask LLM for overall recommendations based on issues
+                    issues_json = json.dumps(all_issues)[:50000]
+                    prompt = (
+                        "Given the following list of issues across a codebase, provide 5 concise, actionable "
+                        "recommendations to improve security, performance, maintainability, and testing. "
+                        "Return STRICT JSON array of strings. Issues: " + issues_json
+                    )
+                    resp = await self.llm.ainvoke([HumanMessage(content=prompt)])
+                    parsed = json.loads(resp.content)
+                    if isinstance(parsed, list):
+                        overall_recommendations = [str(x) for x in parsed if str(x).strip()][:5]
+                except Exception:
+                    pass
+
+            if not overall_recommendations:
+                overall_recommendations = self._generate_recommendations(all_issues) or [
+                    "Prioritize fixing high-severity issues and add tests to prevent regressions."
+                ]
+
             results = {
                 "summary": {
                     "total_files": len(files),
@@ -207,7 +236,7 @@ class CodeQualityAgent:
                 },
                 "issues": all_issues,
                 "file_analyses": file_analyses,
-                "recommendations": self._generate_recommendations(all_issues)
+                "recommendations": overall_recommendations
             }
             
             # Add to RAG system for enhanced Q&A
@@ -228,13 +257,9 @@ class CodeQualityAgent:
         try:
             content = file_path.read_text(encoding='utf-8', errors='ignore')
             
-            # Handle large files with chunking
-            if len(content) > Config.MAX_FILE_SIZE:
-                return await self._analyze_large_file(file_path, content)
-            
             language = self.file_handler.detect_language(file_path)
             
-            # Run static analyzers first
+            # Run static analyzers first (always, even for large files)
             static_results: Dict[str, Any] = {}
             if language in ["python"]:
                 static_results = self.analyzer.analyze_python_file(file_path)
@@ -242,18 +267,105 @@ class CodeQualityAgent:
                 static_results = self.analyzer.analyze_javascript_file(file_path)
             elif language == "jupyter":
                 static_results = self.analyzer.analyze_jupyter_file(file_path)
+            elif language in [
+                "java", "cpp", "c", "csharp", "go", "rust", "php", "ruby",
+                "swift", "kotlin", "scala"
+            ]:
+                static_results = self.analyzer.analyze_generic_file(file_path, language)
 
-            # Run LLM analysis if available
-            response = "{}"
-            if self.analysis_runnable:
-                try:
-                    response = await self.analysis_runnable.ainvoke({
-                        "code": content,
-                        "language": language,
-                        "filename": file_path.name
+            # Prepare static mapped issues (ensure code_snippet present)
+            def _ensure_code_snippet(src: str, ln: int, snippet: str) -> str:
+                if snippet:
+                    return snippet
+                lines = src.split('\n')
+                start = max(0, (ln - 1) - 4) if ln > 0 else 0
+                end = min(len(lines), (ln - 1) + 4) if ln > 0 else min(len(lines), 8)
+                return "\n".join(lines[start:end])
+
+            static_mapped: List[Dict[str, Any]] = []
+            def map_group(items: list, category: str, default_severity: str = "medium"):
+                for it in items or []:
+                    ln = it.get("line", 0)
+                    snippet = _ensure_code_snippet(content, ln, it.get("code", ""))
+                    static_mapped.append({
+                        "category": category,
+                        "severity": it.get("severity", default_severity),
+                        "line_number": ln,
+                        "title": it.get("type", category),
+                        "description": it.get("message", it.get("rule_id", "Static analysis finding")),
+                        "code_snippet": snippet,
+                        "file_path": str(file_path)
                     })
-                except Exception:
-                    response = "{}"
+
+            map_group(static_results.get("security_issues", []), "security")
+            map_group(static_results.get("complexity_issues", []), "complexity")
+            map_group(static_results.get("style_issues", []), "maintainability", "low")
+            map_group(static_results.get("pattern_issues", []), "best_practices", "low")
+
+            # Heuristic fix snippet generator for common patterns
+            def _heuristic_fixes(issues: List[Dict[str, Any]], lang: str) -> List[Dict[str, str]]:
+                fixes: List[Dict[str, str]] = []
+                for it in issues:
+                    snippet = it.get("code_snippet", "")
+                    title = it.get("title", "Recommendation")
+                    if "gets(" in snippet:
+                        fixes.append({
+                            "title": "Replace unsafe gets() with fgets()",
+                            "rationale": "gets() is inherently unsafe and can overflow buffers; fgets() bounds input.",
+                            "fix_snippet": "// Before\ngets(buf);\n// After\nfgets(buf, sizeof(buf), stdin);"
+                        })
+                    elif "strcpy(" in snippet:
+                        fixes.append({
+                            "title": "Use bounded copy instead of strcpy()",
+                            "rationale": "strcpy() can overflow destination; strncpy or strlcpy limit bytes copied.",
+                            "fix_snippet": "// Before\nstrcpy(dst, src);\n// After\nstrncpy(dst, src, sizeof(dst) - 1);\ndst[sizeof(dst)-1] = '\\0';"
+                        })
+                    elif "eval(" in snippet and lang in ["javascript", "php", "ruby", "python"]:
+                        fixes.append({
+                            "title": "Eliminate dynamic eval() execution",
+                            "rationale": "eval() executes arbitrary code and is a security risk; prefer safe APIs.",
+                            "fix_snippet": "// Replace eval usage with explicit parsing or safe API calls\n// Before\nresult = eval(user_input)\n// After (example)\n// Validate and parse expected structure instead of executing code"
+                        })
+                    elif "innerHTML" in snippet and lang in ["javascript", "typescript"]:
+                        fixes.append({
+                            "title": "Avoid assigning untrusted data to innerHTML",
+                            "rationale": "Direct innerHTML can lead to XSS; use textContent or safe templating.",
+                            "fix_snippet": "// Before\nelement.innerHTML = userInput;\n// After\nelement.textContent = userInput; // or sanitize before inserting HTML"
+                        })
+                    if len(fixes) >= 3:
+                        break
+                if not fixes:
+                    fixes = [
+                        {
+                            "title": "Resolve high-severity issues and add regression tests",
+                            "rationale": "Addressing severe findings first reduces risk; tests prevent reintroduction.",
+                            "fix_snippet": "// Add unit test asserting secure behavior and no unsafe calls"
+                        }
+                    ]
+                return fixes
+
+            # Handle large files with chunking for LLM
+            is_large = len(content) > Config.MAX_FILE_SIZE
+            llm_chunk_result: Optional[Dict[str, Any]] = None
+            if is_large:
+                llm_chunk_result = await self._analyze_large_file(file_path, content)
+                response = json.dumps({
+                    "issues": llm_chunk_result.get("issues", []),
+                    "metrics": llm_chunk_result.get("metrics", {}),
+                    "summary": llm_chunk_result.get("summary", "")
+                })
+            else:
+                # Run LLM analysis (always attempt) and recommendations per file
+                response = "{}"
+                if self.analysis_runnable:
+                    try:
+                        response = await self.analysis_runnable.ainvoke({
+                            "code": content,
+                            "language": language,
+                            "filename": file_path.name
+                        })
+                    except Exception:
+                        response = "{}"
 
             # Parse JSON response (LLM)
             llm_analysis: Dict[str, Any] = {}
@@ -264,28 +376,17 @@ class CodeQualityAgent:
 
             # Normalize and merge issues
             merged_issues = []
+            llm_issues_list = []
             for issue in llm_analysis.get("issues", []) or []:
                 issue["file_path"] = str(file_path)
+                # Ensure code snippet exists
+                ln = issue.get("line_number", 0)
+                issue["code_snippet"] = _ensure_code_snippet(content, ln, issue.get("code_snippet", ""))
                 merged_issues.append(issue)
+                llm_issues_list.append(issue)
 
-            # Map static findings into common issue format
-            def add_static(group: str, items: list, category: str, default_severity: str = "medium"):
-                for it in items or []:
-                    merged_issues.append({
-                        "category": category,
-                        "severity": it.get("severity", default_severity),
-                        "line_number": it.get("line", 0),
-                        "title": it.get("type", group),
-                        "description": it.get("message", it.get("rule_id", "Static analysis finding")),
-                        "suggestion": "",
-                        "code_snippet": it.get("code", ""),
-                        "file_path": str(file_path)
-                    })
-
-            add_static("security_issues", static_results.get("security_issues", []), "security")
-            add_static("complexity_issues", static_results.get("complexity_issues", []), "complexity")
-            add_static("style_issues", static_results.get("style_issues", []), "maintainability", "low")
-            add_static("pattern_issues", static_results.get("pattern_issues", []), "best_practices", "low")
+            # Append static mapped to merged
+            merged_issues.extend(static_mapped)
 
             # Build metrics
             metrics = llm_analysis.get("metrics", {}) or {}
@@ -293,12 +394,104 @@ class CodeQualityAgent:
             if radon_metrics.get("cyclomatic_complexity"):
                 avg_complexity = sum(r.get("complexity", 0) for r in radon_metrics["cyclomatic_complexity"]) / max(len(radon_metrics["cyclomatic_complexity"]), 1)
                 metrics["complexity_score"] = round(avg_complexity, 2)
+            
+            # Calculate issue-based scores if LLM didn't provide them
+            if not metrics.get("security_score") and not metrics.get("maintainability_score"):
+                metrics.update(self._calculate_issue_based_scores(merged_issues))
+
+            # Build compact issue context with code snippets for LLM recs/fixes
+            def _extract_code_block(src: str, line: int, context: int = 4) -> str:
+                lines = src.split('\n')
+                if line <= 0 or line > len(lines):
+                    start = 0
+                    end = min(len(lines), 2 * context)
+                else:
+                    start = max(0, line - 1 - context)
+                    end = min(len(lines), line - 1 + context)
+                return "\n".join(lines[start:end])
+
+            compact_issues: List[Dict[str, Any]] = []
+            for it in merged_issues:
+                ln = it.get("line_number", 0)
+                snippet = it.get("code_snippet") or _extract_code_block(content, ln)
+                compact_issues.append({
+                    "category": it.get("category"),
+                    "severity": it.get("severity"),
+                    "line_number": ln,
+                    "title": it.get("title"),
+                    "description": it.get("description", ""),
+                    "code_snippet": snippet
+                })
+
+            # Per-file recommendations with fixes: prefer LLM, fallback to heuristic
+            file_recommendations: List[Any] = []
+            try:
+                if self.llm:
+                    issues_json = json.dumps(compact_issues + llm_issues_list)[:20000]
+                    prompt = (
+                        f"You are a senior {language} code reviewer. Based on the issues (with code), "
+                        "generate up to 3 concrete recommendations each with a minimal fix snippet. "
+                        "Return STRICT JSON array of objects with keys: title, rationale, fix_snippet.\n\n"
+                        f"File: {file_path.name}\nIssues: {issues_json}"
+                    )
+                    rec_resp = await self.llm.ainvoke([HumanMessage(content=prompt)])
+                    parsed_recs = json.loads(rec_resp.content)
+                    if isinstance(parsed_recs, list):
+                        cleaned = []
+                        for x in parsed_recs[:3]:
+                            if isinstance(x, dict):
+                                cleaned.append({
+                                    "title": str(x.get("title", "Recommendation"))[:200],
+                                    "rationale": str(x.get("rationale", ""))[:1000],
+                                    "fix_snippet": str(x.get("fix_snippet", ""))[:4000]
+                                })
+                        file_recommendations = cleaned
+            except Exception:
+                file_recommendations = []
+            if not file_recommendations:
+                # Fallback to heuristic fixes derived from static issues
+                file_recommendations = _heuristic_fixes(static_mapped, language)
+            if not file_recommendations:
+                file_recommendations = [
+                    {"title": "Fix high/medium issues first, then add targeted unit tests.", "rationale": "", "fix_snippet": ""},
+                    {"title": "Refactor complex or duplicated code into reusable functions.", "rationale": "", "fix_snippet": ""},
+                    {"title": "Improve input validation and sanitize external data paths.", "rationale": "", "fix_snippet": ""}
+                ]
+
+            # Build sections for per-file reporting
+            def default_overall_rec(section_issues: List[Dict[str, Any]]) -> Dict[str, str]:
+                top_cat = section_issues[0].get("category", "maintainability") if section_issues else "maintainability"
+                return {
+                    "title": f"Address top {top_cat} risks and add tests",
+                    "rationale": "Prioritize high-severity findings and add regression tests to prevent recurrence.",
+                    "fix_snippet": ""
+                }
+
+            static_section = {
+                "issues": static_mapped,
+                "recommendations": file_recommendations if not llm_issues_list else [  # if no llm, reuse
+                    {"title": r.get("title", "Recommendation"), "rationale": r.get("rationale", ""), "fix_snippet": r.get("fix_snippet", "")}
+                    for r in file_recommendations
+                ][:3],
+                "overall_recommendation": default_overall_rec(static_mapped)
+            }
+
+            llm_section = {
+                "issues": llm_issues_list,
+                "recommendations": file_recommendations[:3],
+                "overall_recommendation": default_overall_rec(llm_issues_list or merged_issues)
+            }
 
             analysis = {
                 "issues": merged_issues,
                 "metrics": metrics,
                 "summary": llm_analysis.get("summary", ""),
                 "duplication_fingerprints": static_results.get("duplication", []),
+                "recommendations": file_recommendations,
+                "sections": {
+                    "static": static_section,
+                    "llm": llm_section
+                },
                 "debug": {
                     "language": language,
                     "static_counts": {
@@ -520,13 +713,56 @@ class CodeQualityAgent:
                     seen_issues.add(issue_key)
                     unique_issues.append(issue)
             
+            # Per-file recommendations for large files via LLM (with fixes)
+            file_recommendations: List[Any] = []
+            try:
+                if self.llm:
+                    compact_issues = []
+                    # Note: cannot recover code here; rely on issue snippets if present
+                    for it in unique_issues:
+                        compact_issues.append({
+                            "category": it.get("category"),
+                            "severity": it.get("severity"),
+                            "line_number": it.get("line_number", 0),
+                            "title": it.get("title"),
+                            "description": it.get("description", ""),
+                            "code_snippet": it.get("code_snippet", "")
+                        })
+                    issues_json = json.dumps(compact_issues)[:20000]
+                    prompt = (
+                        f"You are a senior {language} code reviewer. Based on the merged issues, "
+                        "generate up to 3 concrete recommendations each with a minimal fix snippet. "
+                        "Return STRICT JSON array of objects with keys: title, rationale, fix_snippet.\n\n"
+                        f"File: {file_path.name}\nIssues: {issues_json}"
+                    )
+                    rec_resp = await self.llm.ainvoke([HumanMessage(content=prompt)])
+                    parsed_recs = json.loads(rec_resp.content)
+                    if isinstance(parsed_recs, list):
+                        cleaned = []
+                        for x in parsed_recs[:3]:
+                            if isinstance(x, dict):
+                                cleaned.append({
+                                    "title": str(x.get("title", "Recommendation"))[:200],
+                                    "rationale": str(x.get("rationale", ""))[:1000],
+                                    "fix_snippet": str(x.get("fix_snippet", ""))[:4000]
+                                })
+                        file_recommendations = cleaned
+            except Exception:
+                file_recommendations = []
+            if not file_recommendations:
+                file_recommendations = [
+                    {"title": r, "rationale": "", "fix_snippet": ""}
+                    for r in self._generate_recommendations(unique_issues)[:3]
+                ]
+
             return {
                 "issues": unique_issues,
                 "metrics": all_metrics,
                 "summary": comprehensive_summary,
                 "chunk_count": len(chunk_results),
                 "total_size": sum(chunk.get("chunk_info", {}).get("size", 0) for chunk in chunk_results),
-                "is_chunked_analysis": True
+                "is_chunked_analysis": True,
+                "recommendations": file_recommendations
             }
             
         except Exception as e:
@@ -544,6 +780,64 @@ class CodeQualityAgent:
                 "is_chunked_analysis": True
             }
     
+    def _calculate_issue_based_scores(self, issues: List[Dict[str, Any]]) -> Dict[str, float]:
+        """Calculate quality scores based on issues found."""
+        if not issues:
+            return {
+                "security_score": 100.0,
+                "maintainability_score": 100.0,
+                "overall_score": 100.0
+            }
+        
+        # Severity weights
+        severity_weights = {
+            "critical": 25,
+            "high": 15,
+            "medium": 8,
+            "low": 3,
+            "info": 1
+        }
+        
+        # Category weights
+        category_weights = {
+            "security": 20,
+            "complexity": 10,
+            "maintainability": 5,
+            "best_practices": 3,
+            "code_duplication": 2,
+            "testing": 5,
+            "documentation": 2
+        }
+        
+        # Calculate penalty scores
+        security_penalty = 0
+        maintainability_penalty = 0
+        total_penalty = 0
+        
+        for issue in issues:
+            severity = issue.get("severity", "info")
+            category = issue.get("category", "unknown")
+            
+            penalty = severity_weights.get(severity, 1) * category_weights.get(category, 1)
+            total_penalty += penalty
+            
+            if category == "security":
+                security_penalty += penalty
+            elif category in ["maintainability", "complexity", "best_practices", "code_duplication", "documentation"]:
+                maintainability_penalty += penalty
+        
+        # Convert penalties to scores (0-100 scale)
+        # More issues = lower scores
+        security_score = max(0, 100 - (security_penalty * 2))
+        maintainability_score = max(0, 100 - (maintainability_penalty * 1.5))
+        overall_score = max(0, 100 - (total_penalty * 1.2))
+        
+        return {
+            "security_score": round(security_score, 1),
+            "maintainability_score": round(maintainability_score, 1),
+            "overall_score": round(overall_score, 1)
+        }
+
     def _generate_recommendations(self, issues: List[Dict]) -> List[str]:
         """Generate high-level recommendations based on issues."""
         recommendations = []

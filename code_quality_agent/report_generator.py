@@ -275,6 +275,46 @@ class ReportGenerator:
         
         self.console.print(file_table)
         self.console.print()
+
+        # Show per-file sections: static vs LLM
+        for file_path, analysis in file_analyses.items():
+            sections = (analysis or {}).get('sections') or {}
+            for section_name in ['static', 'llm']:
+                section = sections.get(section_name) or {}
+                issues = section.get('issues') or []
+                recs = section.get('recommendations') or []
+                overall = section.get('overall_recommendation') or {}
+
+                title = f"📄 {Path(file_path).name} — {section_name.upper()} Analysis"
+                table = Table(show_header=True, header_style="bold magenta")
+                table.add_column("Issues", style="yellow")
+                table.add_column("Recommendations", style="green")
+
+                # Issues cell (top 3)
+                issues_lines = []
+                for it in issues[:3]:
+                    issues_lines.append(f"- [{it.get('severity','info').upper()}] {it.get('title','Issue')} @ {it.get('line_number','')}\n  {it.get('description','')}")
+
+                # Recommendations cell (top 3 with fix)
+                rec_lines = []
+                for r in recs[:3]:
+                    if isinstance(r, dict):
+                        rec_lines.append(f"- [b]{r.get('title','Recommendation')}[/b]\n  {r.get('rationale','')}" + (f"\n  [italic]Fix:[/italic]\n````\n{r.get('fix_snippet','')}\n````" if r.get('fix_snippet') else ""))
+                    else:
+                        rec_lines.append(f"- {r}")
+
+                table.add_row("\n".join(issues_lines) or "No issues", "\n\n".join(rec_lines) or "No recommendations")
+                self.console.print(Panel(table, title=title, border_style="cyan"))
+
+                # Overall recommendation
+                if overall:
+                    overall_panel = Panel(
+                        f"[b]{overall.get('title','Overall Recommendation')}[/b]\n{overall.get('rationale','')}",
+                        title=f"🎯 Overall Recommendation — {section_name.upper()}",
+                        border_style="green"
+                    )
+                    self.console.print(overall_panel)
+                self.console.print()
     
     def _get_issue_status(self, count: int) -> str:
         """Get status emoji for issue count."""
@@ -325,6 +365,7 @@ class ReportGenerator:
             summary = analysis_results.get('summary', {})
             issues = analysis_results.get('issues', [])
             recommendations = analysis_results.get('recommendations', [])
+            file_analyses = analysis_results.get('file_analyses', {})
             
             # Build markdown content
             md_content = []
@@ -391,8 +432,61 @@ class ReportGenerator:
             if recommendations:
                 md_content.append("## Recommendations")
                 for i, rec in enumerate(recommendations, 1):
-                    md_content.append(f"{i}. {rec}")
+                    if isinstance(rec, dict):
+                        md_content.append(f"{i}. **{rec.get('title','Recommendation')}**")
+                        if rec.get('rationale'):
+                            md_content.append(f"   - Rationale: {rec['rationale']}")
+                        if rec.get('fix_snippet'):
+                            md_content.append("   - Fix:\n")
+                            md_content.append("```\n" + rec['fix_snippet'] + "\n```")
+                    else:
+                        md_content.append(f"{i}. {rec}")
                 md_content.append("")
+
+            # Per-file sections (static vs LLM)
+            if file_analyses:
+                md_content.append("## File Analyses")
+                for fpath, analysis in file_analyses.items():
+                    md_content.append(f"### {Path(fpath).name}")
+                    sections = (analysis or {}).get('sections') or {}
+                    for section_name in ['static', 'llm']:
+                        section = sections.get(section_name) or {}
+                        md_content.append(f"#### {section_name.upper()} Analysis")
+
+                        # Issues
+                        s_issues = section.get('issues') or []
+                        if s_issues:
+                            md_content.append("- Issues:")
+                            for it in s_issues[:3]:
+                                md_content.append(f"  - [{it.get('severity','info').upper()}] {it.get('title','Issue')} @ {it.get('line_number','')}: {it.get('description','')}")
+                        else:
+                            md_content.append("- Issues: None")
+
+                        # Recommendations
+                        s_recs = section.get('recommendations') or []
+                        if s_recs:
+                            md_content.append("- Recommendations:")
+                            for r in s_recs[:3]:
+                                if isinstance(r, dict):
+                                    md_content.append(f"  - **{r.get('title','Recommendation')}**")
+                                    if r.get('rationale'):
+                                        md_content.append(f"    - Rationale: {r['rationale']}")
+                                    if r.get('fix_snippet'):
+                                        md_content.append("    - Fix:\n")
+                                        md_content.append("```\n" + r['fix_snippet'] + "\n```")
+                                else:
+                                    md_content.append(f"  - {r}")
+                        else:
+                            md_content.append("- Recommendations: None")
+
+                        # Overall recommendation
+                        overall = section.get('overall_recommendation') or {}
+                        if overall:
+                            md_content.append("- Overall Recommendation:")
+                            md_content.append(f"  - **{overall.get('title','Overall Recommendation')}**")
+                            if overall.get('rationale'):
+                                md_content.append(f"    - Rationale: {overall['rationale']}")
+                        md_content.append("")
             
             # Write file
             with open(output_path, 'w', encoding='utf-8') as f:

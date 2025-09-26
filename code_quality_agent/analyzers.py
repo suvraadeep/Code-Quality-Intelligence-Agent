@@ -236,6 +236,89 @@ class CodeAnalyzer:
             results['analysis_error'] = str(e)
         
         return results
+
+    def analyze_generic_file(self, file_path: Path, language: str) -> Dict[str, Any]:
+        """Analyze non-Python, non-JS files using language-agnostic techniques.
+
+        Deep analysis includes:
+        - Semgrep auto rules (multi-language coverage)
+        - Lightweight regex-based best-practice checks per language family
+        - Code duplication fingerprints
+        - Complexity analysis for all languages
+        """
+        results: Dict[str, Any] = {
+            'security_issues': [],
+            'style_issues': [],
+            'best_practice_issues': [],
+            'complexity_issues': [],
+            'metrics': {},
+            'duplication': []
+        }
+
+        try:
+            content = file_path.read_text(encoding='utf-8', errors='ignore')
+
+            # Semgrep (wide language support)
+            if self.available_tools.get('semgrep', False):
+                results['pattern_issues'] = self._run_semgrep_analysis(file_path)
+
+            # Language-family regex patterns (very conservative)
+            lines = content.split('\n')
+            common_c_like = {
+                'c', 'cpp', 'csharp', 'java', 'go', 'rust', 'swift', 'kotlin', 'scala', 'php'
+            }
+
+            if language in common_c_like:
+                security_patterns = [
+                    (r"strcpy\s*\(", 'Potential unsafe strcpy; prefer bounded variants', 'medium'),
+                    (r"gets\s*\(", 'Use of gets() is unsafe', 'high'),
+                ]
+                style_patterns = [
+                    (r"TODO|FIXME", 'Pending TODO/FIXME found', 'low'),
+                ]
+            elif language in ['ruby', 'php']:
+                security_patterns = [
+                    (r"eval\s*\(", 'Use of eval() is dangerous', 'high'),
+                ]
+                style_patterns = [
+                    (r"TODO|FIXME", 'Pending TODO/FIXME found', 'low'),
+                ]
+            else:
+                security_patterns = []
+                style_patterns = [(r"TODO|FIXME", 'Pending TODO/FIXME found', 'low')]
+
+            for i, line in enumerate(lines, 1):
+                for pattern, message, severity in security_patterns:
+                    if re.search(pattern, line):
+                        results['security_issues'].append({
+                            'line': i,
+                            'type': 'security_pattern',
+                            'message': message,
+                            'severity': severity,
+                            'code': line.strip()
+                        })
+                for pattern, message, severity in style_patterns:
+                    if re.search(pattern, line):
+                        results['style_issues'].append({
+                            'line': i,
+                            'type': 'style_pattern',
+                            'message': message,
+                            'severity': severity,
+                            'code': line.strip()
+                        })
+
+            # Complexity analysis for all languages
+            complexity_results = self._analyze_complexity(content, language)
+            results['complexity_issues'].extend(complexity_results.get('issues', []))
+            results['metrics'].update(complexity_results.get('metrics', {}))
+
+            # Duplication fingerprints
+            results['duplication'].extend(self._fingerprint_code_blocks(content, language=language))
+
+        except Exception as e:
+            results['analysis_error'] = str(e)
+
+        return results
     
     def _analyze_python_ast(self, tree: ast.AST, content: str) -> Dict[str, Any]:
         """Analyze Python AST for various issues."""
@@ -519,3 +602,410 @@ class CodeAnalyzer:
                 'size': len(norm)
             })
         return fingerprints
+
+    def _analyze_complexity(self, content: str, language: str) -> Dict[str, Any]:
+        """Analyze complexity for all supported languages using regex-based approach."""
+        results = {
+            'issues': [],
+            'metrics': {}
+        }
+        
+        lines = content.split('\n')
+        
+        # Language-specific complexity patterns
+        if language in ['c', 'cpp', 'csharp', 'java', 'go', 'rust', 'swift', 'kotlin', 'scala']:
+            results.update(self._analyze_c_like_complexity(lines, language))
+        elif language in ['javascript', 'typescript']:
+            results.update(self._analyze_js_complexity(lines, language))
+        elif language in ['php', 'ruby']:
+            results.update(self._analyze_script_complexity(lines, language))
+        elif language == 'python':
+            # Python already has Radon, but add basic checks for consistency
+            results.update(self._analyze_python_basic_complexity(lines))
+        else:
+            # Generic complexity analysis
+            results.update(self._analyze_generic_complexity(lines, language))
+        
+        return results
+
+    def _analyze_c_like_complexity(self, lines: List[str], language: str) -> Dict[str, Any]:
+        """Analyze complexity for C-like languages (C, C++, Java, Go, Rust, etc.)."""
+        issues = []
+        metrics = {}
+        
+        # Function/method detection patterns
+        function_patterns = {
+            'c': r'^\s*\w+\s+\w+\s*\([^)]*\)\s*\{',
+            'cpp': r'^\s*(?:static\s+)?(?:inline\s+)?(?:const\s+)?\w+\s+\w+\s*\([^)]*\)\s*(?:const\s+)?\s*\{',
+            'java': r'^\s*(?:public|private|protected|static|final|abstract|synchronized)\s+.*\w+\s*\([^)]*\)\s*\{',
+            'go': r'^\s*func\s+\w+\s*\([^)]*\)\s*(?:\w+\s+)?\{',
+            'rust': r'^\s*(?:pub\s+)?(?:async\s+)?fn\s+\w+\s*\([^)]*\)\s*(?:->\s*\w+)?\s*\{',
+            'csharp': r'^\s*(?:public|private|protected|internal|static|virtual|override|abstract)\s+.*\w+\s*\([^)]*\)\s*\{',
+            'swift': r'^\s*(?:public|private|internal|static|class|func)\s+\w+\s*\([^)]*\)\s*(?:->\s*\w+)?\s*\{',
+            'kotlin': r'^\s*(?:public|private|protected|internal|open|override|fun)\s+\w+\s*\([^)]*\)\s*(?::\s*\w+)?\s*\{',
+            'scala': r'^\s*(?:def|val|var)\s+\w+\s*\([^)]*\)\s*(?::\s*\w+)?\s*[=]\s*\{'
+        }
+        
+        function_pattern = function_patterns.get(language, function_patterns['c'])
+        
+        # Complexity indicators
+        complexity_patterns = [
+            (r'\bif\s*\(', 'if statement'),
+            (r'\belse\s+if\s*\(', 'else-if statement'),
+            (r'\belse\b', 'else statement'),
+            (r'\bwhile\s*\(', 'while loop'),
+            (r'\bfor\s*\(', 'for loop'),
+            (r'\bforeach\s*\(', 'foreach loop'),
+            (r'\bswitch\s*\(', 'switch statement'),
+            (r'\bcase\s+', 'case statement'),
+            (r'\bdefault\s*:', 'default case'),
+            (r'\btry\s*\{', 'try block'),
+            (r'\bcatch\s*\(', 'catch block'),
+            (r'\bthrow\b', 'throw statement'),
+            (r'\breturn\b', 'return statement'),
+            (r'&&|\|\|', 'logical operator'),
+            (r'\?\s*.*\s*:', 'ternary operator'),
+        ]
+        
+        current_function = None
+        function_complexity = 0
+        function_start_line = 0
+        brace_count = 0
+        in_function = False
+        
+        for i, line in enumerate(lines, 1):
+            stripped = line.strip()
+            
+            # Detect function start
+            if re.search(function_pattern, line) and not in_function:
+                if current_function:
+                    # Save previous function
+                    if function_complexity > 10:
+                        issues.append({
+                            'line': function_start_line,
+                            'type': 'high_complexity',
+                            'message': f'Function has high complexity ({function_complexity})',
+                            'severity': 'medium' if function_complexity < 15 else 'high',
+                            'code': lines[function_start_line - 1].strip()
+                        })
+                
+                current_function = stripped
+                function_start_line = i
+                function_complexity = 1  # Base complexity
+                brace_count = 0
+                in_function = True
+                continue
+            
+            if in_function:
+                # Count braces to track function boundaries
+                brace_count += line.count('{') - line.count('}')
+                
+                # Count complexity indicators
+                for pattern, desc in complexity_patterns:
+                    matches = len(re.findall(pattern, line))
+                    function_complexity += matches
+                
+                # Function ended
+                if brace_count <= 0 and '{' in line:
+                    in_function = False
+                    if function_complexity > 10:
+                        issues.append({
+                            'line': function_start_line,
+                            'type': 'high_complexity',
+                            'message': f'Function has high complexity ({function_complexity})',
+                            'severity': 'medium' if function_complexity < 15 else 'high',
+                            'code': lines[function_start_line - 1].strip()
+                        })
+                    current_function = None
+                    function_complexity = 0
+        
+        # Calculate overall metrics
+        total_functions = len([line for line in lines if re.search(function_pattern, line)])
+        avg_complexity = function_complexity / max(total_functions, 1) if total_functions > 0 else 0
+        
+        metrics['cyclomatic_complexity'] = [{
+            'name': 'overall',
+            'complexity': round(avg_complexity, 2),
+            'lineno': 1
+        }]
+        metrics['total_functions'] = total_functions
+        metrics['high_complexity_functions'] = len([i for i in issues if i['type'] == 'high_complexity'])
+        
+        return {'issues': issues, 'metrics': metrics}
+
+    def _analyze_js_complexity(self, lines: List[str], language: str) -> Dict[str, Any]:
+        """Analyze complexity for JavaScript/TypeScript."""
+        issues = []
+        metrics = {}
+        
+        # Function patterns for JS/TS
+        function_patterns = [
+            r'^\s*function\s+\w+\s*\([^)]*\)\s*\{',
+            r'^\s*const\s+\w+\s*=\s*(?:async\s+)?\([^)]*\)\s*=>\s*\{',
+            r'^\s*let\s+\w+\s*=\s*(?:async\s+)?\([^)]*\)\s*=>\s*\{',
+            r'^\s*var\s+\w+\s*=\s*(?:async\s+)?\([^)]*\)\s*=>\s*\{',
+            r'^\s*\w+\s*:\s*(?:async\s+)?\([^)]*\)\s*=>\s*\{',
+            r'^\s*(?:public|private|protected|static|async)\s+\w+\s*\([^)]*\)\s*\{',  # TypeScript
+        ]
+        
+        # Complexity indicators
+        complexity_patterns = [
+            (r'\bif\s*\(', 'if statement'),
+            (r'\belse\s+if\s*\(', 'else-if statement'),
+            (r'\belse\b', 'else statement'),
+            (r'\bwhile\s*\(', 'while loop'),
+            (r'\bfor\s*\(', 'for loop'),
+            (r'\bfor\s*\(\s*\w+\s+in\s+', 'for-in loop'),
+            (r'\bfor\s*\(\s*\w+\s+of\s+', 'for-of loop'),
+            (r'\bswitch\s*\(', 'switch statement'),
+            (r'\bcase\s+', 'case statement'),
+            (r'\bdefault\s*:', 'default case'),
+            (r'\btry\s*\{', 'try block'),
+            (r'\bcatch\s*\(', 'catch block'),
+            (r'\bthrow\b', 'throw statement'),
+            (r'\breturn\b', 'return statement'),
+            (r'&&|\|\|', 'logical operator'),
+            (r'\?\s*.*\s*:', 'ternary operator'),
+        ]
+        
+        total_functions = 0
+        total_complexity = 0
+        high_complexity_count = 0
+        
+        for i, line in enumerate(lines, 1):
+            # Check if this is a function
+            is_function = any(re.search(pattern, line) for pattern in function_patterns)
+            
+            if is_function:
+                total_functions += 1
+                function_complexity = 1  # Base complexity
+                
+                # Count complexity in the function (simplified - just count in the same line)
+                for pattern, desc in complexity_patterns:
+                    matches = len(re.findall(pattern, line))
+                    function_complexity += matches
+                
+                total_complexity += function_complexity
+                
+                if function_complexity > 10:
+                    high_complexity_count += 1
+                    issues.append({
+                        'line': i,
+                        'type': 'high_complexity',
+                        'message': f'Function has high complexity ({function_complexity})',
+                        'severity': 'medium' if function_complexity < 15 else 'high',
+                        'code': line.strip()
+                    })
+        
+        # Calculate metrics
+        avg_complexity = total_complexity / max(total_functions, 1) if total_functions > 0 else 0
+        
+        metrics['cyclomatic_complexity'] = [{
+            'name': 'overall',
+            'complexity': round(avg_complexity, 2),
+            'lineno': 1
+        }]
+        metrics['total_functions'] = total_functions
+        metrics['high_complexity_functions'] = high_complexity_count
+        
+        return {'issues': issues, 'metrics': metrics}
+
+    def _analyze_script_complexity(self, lines: List[str], language: str) -> Dict[str, Any]:
+        """Analyze complexity for scripting languages (PHP, Ruby)."""
+        issues = []
+        metrics = {}
+        
+        # Function patterns
+        if language == 'php':
+            function_patterns = [
+                r'^\s*function\s+\w+\s*\([^)]*\)\s*\{',
+                r'^\s*(?:public|private|protected|static)\s+function\s+\w+\s*\([^)]*\)\s*\{',
+            ]
+        else:  # Ruby
+            function_patterns = [
+                r'^\s*def\s+\w+\s*(?:\([^)]*\))?\s*$',
+                r'^\s*(?:public|private|protected)\s+def\s+\w+\s*(?:\([^)]*\))?\s*$',
+            ]
+        
+        # Complexity indicators
+        complexity_patterns = [
+            (r'\bif\s+', 'if statement'),
+            (r'\belsif\s+', 'elsif statement'),
+            (r'\belse\b', 'else statement'),
+            (r'\bwhile\s+', 'while loop'),
+            (r'\bfor\s+', 'for loop'),
+            (r'\bforeach\s+', 'foreach loop'),
+            (r'\bcase\s+', 'case statement'),
+            (r'\bwhen\s+', 'when statement'),
+            (r'\btry\s*\{', 'try block'),
+            (r'\brescue\s+', 'rescue block'),
+            (r'\bthrow\b', 'throw statement'),
+            (r'\braise\b', 'raise statement'),
+            (r'\breturn\b', 'return statement'),
+            (r'&&|\|\|', 'logical operator'),
+            (r'\?\s*.*\s*:', 'ternary operator'),
+        ]
+        
+        total_functions = 0
+        total_complexity = 0
+        high_complexity_count = 0
+        
+        for i, line in enumerate(lines, 1):
+            # Check if this is a function
+            is_function = any(re.search(pattern, line) for pattern in function_patterns)
+            
+            if is_function:
+                total_functions += 1
+                function_complexity = 1  # Base complexity
+                
+                # Count complexity in the function
+                for pattern, desc in complexity_patterns:
+                    matches = len(re.findall(pattern, line))
+                    function_complexity += matches
+                
+                total_complexity += function_complexity
+                
+                if function_complexity > 10:
+                    high_complexity_count += 1
+                    issues.append({
+                        'line': i,
+                        'type': 'high_complexity',
+                        'message': f'Function has high complexity ({function_complexity})',
+                        'severity': 'medium' if function_complexity < 15 else 'high',
+                        'code': line.strip()
+                    })
+        
+        # Calculate metrics
+        avg_complexity = total_complexity / max(total_functions, 1) if total_functions > 0 else 0
+        
+        metrics['cyclomatic_complexity'] = [{
+            'name': 'overall',
+            'complexity': round(avg_complexity, 2),
+            'lineno': 1
+        }]
+        metrics['total_functions'] = total_functions
+        metrics['high_complexity_functions'] = high_complexity_count
+        
+        return {'issues': issues, 'metrics': metrics}
+
+    def _analyze_python_basic_complexity(self, lines: List[str]) -> Dict[str, Any]:
+        """Basic complexity analysis for Python (complement to Radon)."""
+        issues = []
+        metrics = {}
+        
+        # Function patterns
+        function_patterns = [
+            r'^\s*def\s+\w+\s*\([^)]*\)\s*:',
+            r'^\s*async\s+def\s+\w+\s*\([^)]*\)\s*:',
+            r'^\s*class\s+\w+.*:',
+        ]
+        
+        # Complexity indicators
+        complexity_patterns = [
+            (r'\bif\s+', 'if statement'),
+            (r'\belif\s+', 'elif statement'),
+            (r'\belse\s*:', 'else statement'),
+            (r'\bwhile\s+', 'while loop'),
+            (r'\bfor\s+', 'for loop'),
+            (r'\btry\s*:', 'try block'),
+            (r'\bexcept\s+', 'except block'),
+            (r'\bfinally\s*:', 'finally block'),
+            (r'\bwith\s+', 'with statement'),
+            (r'\breturn\b', 'return statement'),
+            (r'\band\b|\bor\b', 'logical operator'),
+        ]
+        
+        total_functions = 0
+        total_complexity = 0
+        high_complexity_count = 0
+        
+        for i, line in enumerate(lines, 1):
+            # Check if this is a function
+            is_function = any(re.search(pattern, line) for pattern in function_patterns)
+            
+            if is_function:
+                total_functions += 1
+                function_complexity = 1  # Base complexity
+                
+                # Count complexity in the function
+                for pattern, desc in complexity_patterns:
+                    matches = len(re.findall(pattern, line))
+                    function_complexity += matches
+                
+                total_complexity += function_complexity
+                
+                if function_complexity > 10:
+                    high_complexity_count += 1
+                    issues.append({
+                        'line': i,
+                        'type': 'high_complexity',
+                        'message': f'Function has high complexity ({function_complexity})',
+                        'severity': 'medium' if function_complexity < 15 else 'high',
+                        'code': line.strip()
+                    })
+        
+        # Calculate metrics
+        avg_complexity = total_complexity / max(total_functions, 1) if total_functions > 0 else 0
+        
+        metrics['cyclomatic_complexity'] = [{
+            'name': 'overall',
+            'complexity': round(avg_complexity, 2),
+            'lineno': 1
+        }]
+        metrics['total_functions'] = total_functions
+        metrics['high_complexity_functions'] = high_complexity_count
+        
+        return {'issues': issues, 'metrics': metrics}
+
+    def _analyze_generic_complexity(self, lines: List[str], language: str) -> Dict[str, Any]:
+        """Generic complexity analysis for unknown languages."""
+        issues = []
+        metrics = {}
+        
+        # Generic complexity indicators
+        complexity_patterns = [
+            (r'\bif\s+', 'if statement'),
+            (r'\belse\b', 'else statement'),
+            (r'\bwhile\s+', 'while loop'),
+            (r'\bfor\s+', 'for loop'),
+            (r'\btry\s*\{', 'try block'),
+            (r'\bcatch\s*\(', 'catch block'),
+            (r'\breturn\b', 'return statement'),
+            (r'&&|\|\|', 'logical operator'),
+        ]
+        
+        total_complexity = 0
+        high_complexity_lines = 0
+        
+        for i, line in enumerate(lines, 1):
+            line_complexity = 0
+            
+            # Count complexity indicators in this line
+            for pattern, desc in complexity_patterns:
+                matches = len(re.findall(pattern, line))
+                line_complexity += matches
+            
+            total_complexity += line_complexity
+            
+            if line_complexity > 3:  # High complexity line
+                high_complexity_lines += 1
+                issues.append({
+                    'line': i,
+                    'type': 'high_complexity',
+                    'message': f'Line has high complexity ({line_complexity})',
+                    'severity': 'low',
+                    'code': line.strip()
+                })
+        
+        # Calculate metrics
+        avg_complexity = total_complexity / max(len(lines), 1)
+        
+        metrics['cyclomatic_complexity'] = [{
+            'name': 'overall',
+            'complexity': round(avg_complexity, 2),
+            'lineno': 1
+        }]
+        metrics['total_lines'] = len(lines)
+        metrics['high_complexity_lines'] = high_complexity_lines
+        
+        return {'issues': issues, 'metrics': metrics}
