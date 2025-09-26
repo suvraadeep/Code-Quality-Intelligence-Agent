@@ -13,7 +13,7 @@ Key Components:
 Functions/Classes:
 - `class Config`: Configuration class with class methods
   - Class Variables:
-    - `DEFAULT_MODEL`: LLM model name ("deepseek-r1-distill-llama-70b")
+    - `DEFAULT_MODEL`: LLM model name ("openai/gpt-oss-120b")
     - `TEMPERATURE`: LLM temperature setting (0.1)
     - `MAX_TOKENS`: Maximum LLM tokens (4096)
     - `MAX_FILE_SIZE`: Maximum file size for analysis (1MB)
@@ -38,7 +38,7 @@ class Config:
     # API Keys (fetched dynamically via get_groq_api_key)
     
     # Model settings
-    DEFAULT_MODEL = "deepseek-r1-distill-llama-70b"
+    DEFAULT_MODEL = "openai/gpt-oss-120b"
     TEMPERATURE = 0.1
     MAX_TOKENS = 4096
     
